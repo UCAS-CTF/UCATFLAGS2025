@@ -2,6 +2,7 @@
 <html lang="zh-CN" class="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Binary | UCATFLAGS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -23,12 +24,14 @@
         body:not(.dark) { background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #3b82f6, #000); }
+        
+        /* Mobile Nav Optimized */
         #mobile-menu { transition: opacity 0.3s, visibility 0.3s; }
         .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
         .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-slate-300 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
+<body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-gray-300 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
 
     <div class="top-bar"></div>
 
@@ -41,8 +44,9 @@
                 </div>
                 <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">BINARY_EXPL</h1>
             </div>
-            <button onclick="toggleMenu()" class="md:hidden text-2xl p-2">☰</button>
+            <button onclick="toggleMenu()" class="md:hidden text-3xl p-2 z-50">☰</button>
         </div>
+
         <div class="hidden md:flex gap-4">
             <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
                 <span class="dark:hidden">☀</span><span class="hidden dark:inline">☾</span>
@@ -53,10 +57,14 @@
         </div>
     </nav>
 
-    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8">
-        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-4xl">&times;</button>
-        <a href="../index.html" class="text-2xl font-bold uppercase hover:text-theme-500">Return Home</a>
-        <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-6 py-2 rounded-full">Switch Theme</button>
+    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-[100] bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8 text-black dark:text-white">
+        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-5xl hover:text-theme-500 transition-colors">&times;</button>
+        <div class="flex flex-col items-center gap-6">
+            <a href="../index.html" class="text-3xl font-bold uppercase hover:text-theme-500 tracking-tighter">[ RETURN HOME ]</a>
+            <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-8 py-3 rounded-full text-lg font-mono hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
+                SWITCH THEME
+            </button>
+        </div>
     </div>
 
     <main class="w-full max-w-5xl space-y-8">
@@ -66,28 +74,30 @@
                 <span class="bg-theme-500 text-white px-2 py-0.5 text-sm font-mono">INTRO</span> RE & PWN
             </h2>
             <p class="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed">
-                二进制安全考察对底层系统的理解。包括 <strong class="bg-blue-100 dark:bg-blue-900/30 text-theme-600 dark:text-theme-500 px-1">Reverse</strong> 分析程序逻辑，以及 <strong class="bg-blue-100 dark:bg-blue-900/30 text-theme-600 dark:text-theme-500 px-1">Pwn</strong> 挖掘内存漏洞。
+                二进制安全考察对底层系统的理解。包括 <strong class="text-theme-600 dark:text-theme-500">Reverse</strong> 分析程序逻辑，以及 <strong class="text-theme-600 dark:text-theme-500">Pwn</strong> 挖掘内存漏洞。
             </p>
         </article>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 shadow-hard hover:border-black dark:hover:border-theme-500 transition-colors">
-                <h3 class="font-bold text-xl md:text-2xl mb-4 text-black dark:text-white">Reverse Engineering</h3>
+                <h3 class="font-mono text-gray-400 text-xs mb-2">ANALYSIS</h3>
+                <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">Reverse Engineering</h4>
                 <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li class="flex gap-2"><span>[+]</span> <strong>程序原理</strong>: OS 加载与执行</li>
-                    <li class="flex gap-2"><span>[+]</span> <strong>文件结构</strong>: ELF, PE</li>
-                    <li class="flex gap-2"><span>[+]</span> <strong>汇编语言</strong>: x86, ARM</li>
-                    <li class="flex gap-2"><span>[+]</span> <strong>分析方法</strong>: 静态 vs 动态</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>程序原理</strong>: OS 加载与执行</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>文件结构</strong>: ELF, PE 头部分析</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>汇编语言</strong>: x86, ARM 指令集</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>分析方法</strong>: 静态 vs 动态调试</li>
                 </ul>
             </article>
 
             <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 shadow-hard hover:border-black dark:hover:border-theme-500 transition-colors">
-                <h3 class="font-bold text-xl md:text-2xl mb-4 text-black dark:text-white">Exploitation</h3>
+                <h3 class="font-mono text-gray-400 text-xs mb-2">ATTACK</h3>
+                <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">Exploitation</h4>
                 <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li class="flex gap-2"><span>[!]</span> <strong>保护机制</strong>: ASLR, NX, PIE</li>
-                    <li class="flex gap-2"><span>[!]</span> <strong>栈溢出</strong>: ROP, Ret2Libc</li>
-                    <li class="flex gap-2"><span>[!]</span> <strong>堆漏洞</strong>: UAF, Double Free</li>
-                    <li class="flex gap-2"><span>[!]</span> <strong>Shellcode</strong>: 编写与注入</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>保护机制</strong>: ASLR, NX, PIE</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>栈溢出</strong>: ROP, Ret2Libc</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>堆漏洞</strong>: UAF, Double Free</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Shellcode</strong>: 编写与注入</li>
                 </ul>
             </article>
         </div>
@@ -100,21 +110,21 @@
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default">
-                    <strong class="block font-bold mb-1 dark:text-white">IDA Pro</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500">Static</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">IDA Pro</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Static God</span>
                 </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default">
-                    <strong class="block font-bold mb-1 dark:text-white">GDB</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500">Dynamic</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">GDB</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Dynamic</span>
                 </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default">
-                    <strong class="block font-bold mb-1 dark:text-white">pwntools</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500">Exploit</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Pwntools</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Exploit Frame</span>
                 </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default">
-                    <strong class="block font-bold mb-1 dark:text-white">Ghidra</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500">Free RE</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Ghidra</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">NSA Tool</span>
                 </div>
             </div>
         </section>

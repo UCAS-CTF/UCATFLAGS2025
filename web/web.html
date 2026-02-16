@@ -25,7 +25,7 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #f97316, #000); }
         
-        /* Mobile Nav */
+        /* Mobile Nav Optimized */
         #mobile-menu { transition: opacity 0.3s, visibility 0.3s; }
         .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
         .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; }
@@ -44,8 +44,7 @@
                 </div>
                 <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">WEB_SECURITY</h1>
             </div>
-            <!-- Mobile Toggle -->
-            <button onclick="toggleMenu()" class="md:hidden text-2xl p-2">☰</button>
+            <button onclick="toggleMenu()" class="md:hidden text-3xl p-2 z-50">☰</button>
         </div>
 
         <div class="hidden md:flex gap-4">
@@ -58,11 +57,14 @@
         </div>
     </nav>
 
-    <!-- Mobile Menu Overlay -->
-    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8">
-        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-4xl">&times;</button>
-        <a href="../index.html" class="text-2xl font-bold uppercase hover:text-theme-500">Return Home</a>
-        <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-6 py-2 rounded-full">Switch Theme</button>
+    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-[100] bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8 text-black dark:text-white">
+        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-5xl hover:text-theme-500 transition-colors">&times;</button>
+        <div class="flex flex-col items-center gap-6">
+            <a href="../index.html" class="text-3xl font-bold uppercase hover:text-theme-500 tracking-tighter">[ RETURN HOME ]</a>
+            <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-8 py-3 rounded-full text-lg font-mono hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
+                SWITCH THEME
+            </button>
+        </div>
     </div>
 
     <main class="w-full max-w-5xl space-y-8">

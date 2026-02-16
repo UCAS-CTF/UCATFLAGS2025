@@ -2,6 +2,7 @@
 <html lang="zh-CN" class="light">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cryptography | UCATFLAGS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -23,12 +24,13 @@
         body:not(.dark) { background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #10b981, #000); }
+        
         #mobile-menu { transition: opacity 0.3s, visibility 0.3s; }
         .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
         .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-emerald-100 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
+<body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-gray-300 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
 
     <div class="top-bar"></div>
 
@@ -41,8 +43,9 @@
                 </div>
                 <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">CRYPTO_GRAPHY</h1>
             </div>
-            <button onclick="toggleMenu()" class="md:hidden text-2xl p-2">☰</button>
+            <button onclick="toggleMenu()" class="md:hidden text-3xl p-2 z-50">☰</button>
         </div>
+
         <div class="hidden md:flex gap-4">
             <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
                 <span class="dark:hidden">☀</span><span class="hidden dark:inline">☾</span>
@@ -53,10 +56,14 @@
         </div>
     </nav>
 
-    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8">
-        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-4xl">&times;</button>
-        <a href="../index.html" class="text-2xl font-bold uppercase hover:text-theme-500">Return Home</a>
-        <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-6 py-2 rounded-full">Switch Theme</button>
+    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-[100] bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8 text-black dark:text-white">
+        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-5xl hover:text-theme-500 transition-colors">&times;</button>
+        <div class="flex flex-col items-center gap-6">
+            <a href="../index.html" class="text-3xl font-bold uppercase hover:text-theme-500 tracking-tighter">[ RETURN HOME ]</a>
+            <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-8 py-3 rounded-full text-lg font-mono hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
+                SWITCH THEME
+            </button>
+        </div>
     </div>
 
     <main class="w-full max-w-5xl space-y-8">
@@ -74,10 +81,11 @@
             <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 shadow-hard hover:border-black dark:hover:border-theme-500 transition-colors">
                 <h3 class="font-mono text-gray-400 text-xs mb-2">ALGORITHMS</h3>
                 <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">常见算法</h4>
-                <ul class="space-y-2 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li class="flex justify-between"><span>对称密码</span> <span class="text-theme-500">AES, DES</span></li>
-                    <li class="flex justify-between"><span>非对称密码</span> <span class="text-theme-500">RSA, ECC</span></li>
-                    <li class="flex justify-between"><span>哈希函数</span> <span class="text-theme-500">MD5, SHA-256</span></li>
+                <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>对称密码</strong>: AES, DES, RC4</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>非对称密码</strong>: RSA, ECC, ElGamal</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>哈希函数</strong>: MD5, SHA-1, SHA-256</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>编码方式</strong>: Base64, Hex, ASCII</li>
                 </ul>
             </article>
 
@@ -85,9 +93,10 @@
                 <h3 class="font-mono text-gray-400 text-xs mb-2">TARGETS</h3>
                 <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">攻击对象</h4>
                 <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li><span class="font-bold text-black dark:text-white">>></span> 分组密码模式 (ECB/CBC)</li>
-                    <li><span class="font-bold text-black dark:text-white">>></span> 大整数因子分解 (RSA)</li>
-                    <li><span class="font-bold text-black dark:text-white">>></span> 离散对数问题 (DLP)</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>分组模式</strong>: ECB/CBC 翻转攻击</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>RSA攻击</strong>: 共模, 小指数, 维纳攻击</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>离散对数</strong>: DLP 问题求解</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>随机数</strong>: 伪随机数预测 (PRNG)</li>
                 </ul>
             </article>
         </div>
@@ -99,21 +108,22 @@
                 <div class="h-px bg-black dark:bg-gray-700 flex-grow"></div>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
-                    <strong class="block font-bold mb-2 dark:text-white group-hover:text-white">Libs</strong>
-                    <div class="flex flex-wrap gap-1 text-[10px] font-mono text-gray-500 dark:text-gray-500 group-hover:text-white">
-                        <span class="border border-current px-1 rounded">pycrypto</span>
-                        <span class="border border-current px-1 rounded">gmpy2</span>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">PyCrypto</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Python Lib</span>
                 </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group flex flex-col justify-center cursor-default">
-                    <strong class="block font-bold dark:text-white group-hover:text-white">SageMath</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 mt-1 group-hover:text-white">Math Tool</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">SageMath</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Math Tool</span>
                 </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group flex flex-col justify-center cursor-default">
-                    <strong class="block font-bold dark:text-white group-hover:text-white">CyberChef</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 mt-1 group-hover:text-white">Swiss Knife</span>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">CyberChef</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Swiss Knife</span>
+                </div>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Yafu</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Factorize</span>
                 </div>
             </div>
         </section>
