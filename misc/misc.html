@@ -17,30 +17,35 @@
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Space Grotesk', sans-serif; transition: background-color 0.3s, color 0.3s; }
         body:not(.dark) { background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #a855f7, #000); }
+        #mobile-menu { transition: opacity 0.3s, visibility 0.3s; }
+        .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+        .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
 </head>
 <body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-purple-100 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
 
     <div class="top-bar"></div>
 
-    <nav class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-theme-500/30 pb-6 gap-4">
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <span class="w-3 h-3 bg-theme-500 rounded-full animate-pulse"></span>
-                <span class="font-mono text-xs font-bold text-gray-500 dark:text-theme-500 tracking-widest uppercase">Knowledge Base // 04</span>
+    <nav class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-theme-500/30 pb-6 gap-4 relative">
+        <div class="flex justify-between w-full md:w-auto items-center">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-3 h-3 bg-theme-500 rounded-full animate-pulse"></span>
+                    <span class="font-mono text-xs font-bold text-gray-500 dark:text-theme-500 tracking-widest uppercase">Knowledge Base // 04</span>
+                </div>
+                <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">MISCELLANEOUS</h1>
             </div>
-            <h1 class="text-4xl md:text-6xl font-bold tracking-tighter text-black dark:text-white leading-none">MISCELLANEOUS</h1>
+            <button onclick="toggleMenu()" class="md:hidden text-2xl p-2">☰</button>
         </div>
-        <div class="flex gap-4">
+        <div class="hidden md:flex gap-4">
             <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-                <svg class="w-5 h-5 hidden dark:block text-theme-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                <svg class="w-5 h-5 block dark:hidden text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <span class="dark:hidden">☀</span><span class="hidden dark:inline">☾</span>
             </button>
             <a href="../index.html" class="group flex items-center gap-2 text-sm font-bold border-2 border-black dark:border-white px-4 py-2 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
                 [ RETURN HOME ]
@@ -48,13 +53,19 @@
         </div>
     </nav>
 
+    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-50 bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8">
+        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-4xl">&times;</button>
+        <a href="../index.html" class="text-2xl font-bold uppercase hover:text-theme-500">Return Home</a>
+        <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-6 py-2 rounded-full">Switch Theme</button>
+    </div>
+
     <main class="w-full max-w-5xl space-y-8">
         
         <article class="bg-white dark:bg-[#0a0a0a] border-2 border-black dark:border-theme-500 p-6 md:p-8 shadow-hard dark:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-colors">
-            <h2 class="text-3xl font-bold mb-4 flex items-center gap-2 text-black dark:text-white">
+            <h2 class="text-2xl md:text-3xl font-bold mb-4 flex items-center gap-2 text-black dark:text-white">
                 <span class="bg-theme-500 text-white px-2 py-0.5 text-sm font-mono">INTRO</span> Security General
             </h2>
-            <p class="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+            <p class="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed">
                 MISC 包罗万象，考察选手的综合能力。涉及隐写术、流量分析、取证技术以及各种脑洞大开的谜题。
             </p>
         </article>
@@ -112,5 +123,18 @@
     <footer class="mt-16 py-8 text-center text-xs text-gray-400 font-mono w-full border-t border-gray-200 dark:border-gray-800">
         // UCATFLAGS MISC DIVISION //
     </footer>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu.classList.contains('hidden-menu')) {
+                menu.classList.remove('hidden-menu');
+                menu.classList.add('visible-menu');
+            } else {
+                menu.classList.add('hidden-menu');
+                menu.classList.remove('visible-menu');
+            }
+        }
+    </script>
 </body>
 </html>

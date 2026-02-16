@@ -214,20 +214,65 @@
         
         section { padding: 8rem 1rem; max-width: 1400px; margin: 0 auto; }
         
-        /* Mobile Menu */
+        /* --- 移动端菜单修复样式 START --- */
         #mobile-menu {
-            transition: opacity 0.3s ease, visibility 0.3s;
-        }
-        #mobile-menu.hidden {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 45; /* 位于 Navbar(50) 之下，内容之上 */
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            
+            /* 状态控制 */
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
+            
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        #mobile-menu:not(.hidden) {
+
+        .dark #mobile-menu {
+            background: rgba(2, 2, 2, 0.95);
+        }
+
+        #mobile-menu.active {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
         }
+
+        /* 菜单内容容器动画 */
+        .menu-content-wrapper {
+            transform: translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%;
+        }
+
+        #mobile-menu.active .menu-content-wrapper {
+            transform: translateY(0);
+        }
+
+        /* 汉堡按钮线条动画 */
+        .icon-line {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        /* 汉堡变叉号逻辑 (通过 body class 控制) */
+        body.menu-open #mobile-menu-btn .line-1 {
+            transform: translateY(6px) rotate(45deg);
+        }
+        body.menu-open #mobile-menu-btn .line-2 {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        body.menu-open #mobile-menu-btn .line-3 {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        /* --- 移动端菜单修复样式 END --- */
     </style>
 </head>
 <body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-gray-300 selection:bg-gold-500 selection:text-white transition-colors duration-500 animate-page-enter">
@@ -241,7 +286,7 @@
         dark:bg-black/60 dark:border-gold-500/20 
         bg-white/90 border-black">
         
-        <div class="text-xl font-bold tracking-tighter cursor-pointer hover-trigger transition-colors dark:text-gold-500 text-black flex items-center gap-2">
+        <div class="text-xl font-bold tracking-tighter cursor-pointer hover-trigger transition-colors dark:text-gold-500 text-black flex items-center gap-2 relative z-50">
             <span class="w-3 h-3 bg-current rounded-full"></span>
             UCATFLAGS_
         </div>
@@ -267,27 +312,44 @@
             </a>
         </div>
 
-        <!-- Mobile Hamburger -->
-        <button id="mobile-menu-btn" class="md:hidden text-2xl hover-trigger dark:text-white text-black p-2">
-            ☰
+        <!-- Mobile Hamburger (修复后的按钮结构，支持动画) -->
+        <button id="mobile-menu-btn" class="md:hidden z-50 relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none">
+            <span class="icon-line line-1 w-6 h-0.5 bg-black dark:bg-white block"></span>
+            <span class="icon-line line-2 w-6 h-0.5 bg-black dark:bg-white block"></span>
+            <span class="icon-line line-3 w-6 h-0.5 bg-black dark:bg-white block"></span>
         </button>
     </nav>
 
-    <!-- Mobile Menu Overlay -->
-    <div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl flex flex-col justify-center items-center text-center">
-        <button id="close-menu-btn" class="absolute top-6 right-6 text-4xl dark:text-white text-black">&times;</button>
-        <div class="flex flex-col space-y-8 text-xl font-bold tracking-widest uppercase dark:text-white text-black">
-            <a href="notice/notice.html" class="mobile-link hover:text-gold-500 transition-colors">公告</a>
-            <a href="#about" class="mobile-link hover:text-gold-500 transition-colors">介绍</a>
-            <a href="#tracks" class="mobile-link hover:text-gold-500 transition-colors">赛题</a>
-            <a href="#schedule" class="mobile-link hover:text-gold-500 transition-colors">赛程</a>
-            <a href="#details" class="mobile-link hover:text-gold-500 transition-colors">评分</a>
-            <div class="pt-8">
-                <button onclick="toggleTheme()" class="border px-6 py-2 rounded-full border-current flex items-center justify-center gap-2 mx-auto">
-                    <span class="text-sm">切换主题</span>
+    <!-- Mobile Menu Overlay (修复后的全屏菜单) -->
+    <div id="mobile-menu" class="flex flex-col justify-center items-center text-center">
+        <!-- 装饰性背景网格 -->
+        <div class="absolute inset-0 opacity-10 pointer-events-none" 
+             style="background-image: linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        
+        <div class="menu-content-wrapper flex flex-col space-y-8 relative z-10 p-6 w-full max-w-sm mx-auto">
+            <div class="flex flex-col space-y-6 text-2xl font-bold tracking-widest uppercase dark:text-white text-black font-serif">
+                <a href="notice/notice.html" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">公告</a>
+                <a href="#about" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">介绍</a>
+                <a href="#tracks" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">赛题</a>
+                <a href="#schedule" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">赛程</a>
+                <a href="#details" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">评分</a>
+            </div>
+
+            <div class="h-px w-16 bg-gray-300 dark:bg-gray-700 mx-auto my-6"></div>
+
+            <div class="pt-2 flex flex-col gap-4">
+                <button onclick="toggleTheme()" class="border border-current px-6 py-3 hover:bg-black hover:text-white dark:hover:bg-gold-500 dark:hover:text-black transition-all flex items-center justify-center gap-3 w-full text-sm font-mono tracking-wider">
+                    <span>SWITCH THEME</span>
                     <svg class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                     <svg class="w-4 h-4 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
+                
+                <a href="https://www.wjx.cn/vm/hG49aBH.aspx#" target="_blank" class="px-6 py-3 text-sm font-bold transition-all text-center font-mono
+                dark:text-black dark:bg-gold-500 dark:hover:bg-white 
+                text-white bg-black hover:bg-white hover:text-black border-2 border-transparent hover:border-black">
+                立即报名 ->
+                </a>
             </div>
         </div>
     </div>
@@ -303,12 +365,6 @@
         </div>
 
         <h1 class="sr-only">UCATFLAGS 2025+</h1>
-
-        <!-- 交互提示 -->
-        <!-- <div class="ui-layer" style="bottom: 160px;">
-            [ SYSTEM: ONLINE ]<br>
-            <span class="dark:text-gold-500 text-black font-bold">CLICK TITLE</span> TO BREACH
-        </div> -->
 
         <!-- 倒计时 -->
         <div class="grid grid-cols-4 gap-4 mt-[55vh] mb-12 font-mono z-30 relative transition-colors duration-500">
@@ -538,25 +594,45 @@
             updateThreeTheme(isDark);
         }
 
-        // --- 汉堡菜单逻辑 ---
+        // --- 汉堡菜单逻辑 (已修复) ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const closeMenuBtn = document.getElementById('close-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const mobileLinks = document.querySelectorAll('.mobile-link');
+        const body = document.body;
 
-        function openMenu() {
-            mobileMenu.classList.remove('hidden');
+        function toggleMenu() {
+            const isActive = mobileMenu.classList.contains('active');
+            
+            if (isActive) {
+                // 关闭菜单
+                mobileMenu.classList.remove('active');
+                body.classList.remove('menu-open'); // 移除此列以恢复汉堡图标
+                body.style.overflow = ''; // 恢复滚动
+            } else {
+                // 打开菜单
+                mobileMenu.classList.add('active');
+                body.classList.add('menu-open'); // 添加此列以变为X图标
+                body.style.overflow = 'hidden'; // 禁止背景滚动
+            }
         }
 
-        function closeMenu() {
-            mobileMenu.classList.add('hidden');
-        }
+        // 绑定点击事件
+        mobileMenuBtn.addEventListener('click', toggleMenu);
 
-        mobileMenuBtn.addEventListener('click', openMenu);
-        closeMenuBtn.addEventListener('click', closeMenu);
-        
+        // 点击链接后自动关闭
         mobileLinks.forEach(link => {
-            link.addEventListener('click', closeMenu);
+            link.addEventListener('click', () => {
+                if (mobileMenu.classList.contains('active')) {
+                    toggleMenu();
+                }
+            });
+        });
+
+        // 点击菜单背景也可以关闭 (保留逻辑健壮性，尽管覆盖了全屏)
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                toggleMenu();
+            }
         });
 
         // --- 1. Fabric Canvas Logic ---
