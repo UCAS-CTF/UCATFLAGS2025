@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | UCATFLAGS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tech: { blue: '#2563eb', dark: '#050505', accent: '#f97316' }
+                    },
+                    fontFamily: {
+                        'mono': ['"JetBrains Mono"', 'monospace'],
+                        'sans': ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'hard-hover': '6px 6px 0px 0px rgba(37,99,235,1)',
+                    },
+                    animation: { 'slide-in': 'slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards' },
+                    keyframes: { slideIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        /* Light Mode Grid */
+        body:not(.dark) {
+            background-color: #f8fafc;
+            background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        /* Dark Mode Clean */
+        .dark body { background-color: #050505; }
+        
+        /* Top Bar Gradient */
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #2563eb, #f97316); z-index: 60; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        .dark ::-webkit-scrollbar-track { background: #050505; }
+        .dark ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="text-gray-900 dark:text-gray-100 bg-[#f8fafc] dark:bg-[#050505] min-h-screen flex flex-col items-center py-12 px-4 md:px-6">
+
+    <div class="top-bar"></div>
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-gray-700 pb-6 gap-4 animate-slide-in">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-3 h-3 bg-tech-blue rounded-full animate-pulse"></span>
+                <span class="font-mono text-xs font-bold text-gray-500 dark:text-gray-400 tracking-widest uppercase">System Notifications</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tighter text-black dark:text-white leading-none">
+                UPDATE_LOGS
+            </h1>
+        </div>
+        
+        <div class="flex gap-4">
+            <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                <svg class="w-5 h-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            </button>
+            <a href="../index.html" class="group flex items-center gap-2 text-sm font-bold border-2 border-black dark:border-white px-4 py-2 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                RETURN HOME
+            </a>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl space-y-8">
+
+        <!-- 置顶通知 -->
+        <article class="bg-white dark:bg-[#0a0a0a] border-2 border-black dark:border-tech-blue p-6 md:p-8 shadow-hard hover:shadow-hard-hover dark:shadow-none transition-all duration-300 relative overflow-hidden group animate-slide-in" style="animation-delay: 0.1s;">
+            <div class="relative z-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-black dark:bg-tech-blue text-white px-3 py-1 text-xs font-mono font-bold uppercase">Pinned</span>
+                    <span class="text-xs font-mono text-gray-500">2025.11.15</span>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4 text-black dark:text-white group-hover:text-tech-blue transition-colors">
+                    平台开放注册
+                </h2>
+                <p class="text-gray-700 dark:text-gray-400 text-lg leading-relaxed border-l-4 border-gray-200 dark:border-gray-800 pl-4">
+                    平台现已全面开放。请各位选手提前完成 
+                    <strong class="bg-blue-100 dark:bg-blue-900/30 px-1 text-tech-blue">账号注册</strong>、
+                    <strong class="bg-blue-100 dark:bg-blue-900/30 px-1 text-tech-blue">战队创建</strong> 及组队流程。
+                </p>
+            </div>
+        </article>
+
+        <!-- 活动通知 -->
+        <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 md:p-8 hover:border-tech-accent dark:hover:border-tech-accent transition-colors duration-300 animate-slide-in" style="animation-delay: 0.2s;">
+            <div class="flex flex-col md:flex-row gap-6 md:gap-12">
+                <div class="flex-shrink-0 flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-2 min-w-[120px]">
+                    <span class="text-4xl font-bold text-tech-accent">01</span>
+                    <span class="font-mono text-xs text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 w-full">EVENT INFO</span>
+                </div>
+                <div class="flex-grow">
+                    <h2 class="text-2xl font-bold mb-4 dark:text-white">UCATFLAGS 2024 火热报名中</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gray-50 dark:bg-[#111] p-4 rounded border border-gray-100 dark:border-gray-800">
+                            <span class="block text-xs font-mono text-gray-400 mb-1">DEADLINE</span>
+                            <strong class="text-black dark:text-white text-lg">2026.03.07</strong>
+                            <span class="text-xs text-red-500 ml-2">23:59:59</span>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-[#111] p-4 rounded border border-gray-100 dark:border-gray-800">
+                            <span class="block text-xs font-mono text-gray-400 mb-1">DURATION</span>
+                            <strong class="text-black dark:text-white text-lg">03.09 - 03.20</strong>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        组队规则：一二年级队伍最多 4 人，三四年级队伍最多 3 人。
+                    </p>
+                    <a href="https://www.wjx.cn/vm/hG49aBH.aspx#" target="_blank" class="inline-flex items-center gap-2 text-sm font-bold text-black dark:text-white border-b-2 border-tech-accent pb-0.5 hover:text-tech-accent transition-colors">
+                        前往报名问卷 &rarr;
+                    </a>
+                </div>
+            </div>
+        </article>
+
+        <!-- 更新日志 -->
+        <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 md:p-8 hover:border-black dark:hover:border-white transition-colors duration-300 animate-slide-in" style="animation-delay: 0.3s;">
+            <div class="flex flex-col md:flex-row gap-6 md:gap-12">
+                <div class="flex-shrink-0 flex flex-row md:flex-col items-center md:items-start gap-4 md:gap-2 min-w-[120px]">
+                    <span class="text-4xl font-bold text-gray-300 dark:text-gray-700">02</span>
+                    <span class="font-mono text-xs text-gray-400 border-t border-gray-200 dark:border-gray-700 pt-2 w-full">CHANGELOG</span>
+                </div>
+                <div class="flex-grow">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2 dark:text-white">
+                        规则更新日志
+                        <span class="px-2 py-0.5 bg-gray-100 dark:bg-[#222] text-gray-600 dark:text-gray-300 text-[10px] rounded-full font-mono">v2.0</span>
+                    </h2>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 w-1.5 h-1.5 bg-black dark:bg-white rounded-full flex-shrink-0"></span>
+                            <span class="text-sm text-gray-700 dark:text-gray-400">
+                                <strong>赛制调整：</strong> 线下网安知识竞赛调整为 <span class="bg-yellow-100 dark:bg-yellow-900/30 px-1 dark:text-yellow-200">线上限时问卷（开卷）</span>。
+                            </span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="mt-1 w-1.5 h-1.5 bg-black dark:bg-white rounded-full flex-shrink-0"></span>
+                            <span class="text-sm text-gray-700 dark:text-gray-400">
+                                <strong>赛后审核：</strong> 推荐提交解题思路 (WriteUp)，不再强制要求。
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </article>
+
+    </main>
+
+    <footer class="mt-16 mb-8 text-center border-t border-gray-200 dark:border-gray-800 pt-8 w-full max-w-4xl">
+        <p class="text-xs text-gray-400 dark:text-gray-600 font-mono tracking-widest">
+            // END OF STREAM // UCATFLAGS COMMITTEE
+        </p>
+    </footer>
+
+</body>
+</html>

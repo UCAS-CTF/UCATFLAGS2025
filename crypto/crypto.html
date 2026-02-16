@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <title>Cryptography | UCATFLAGS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: { theme: { 500: '#10b981', 600: '#059669' } },
+                    animation: { 'page-enter': 'fadeIn 0.5s ease-out forwards' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } },
+                    boxShadow: { 'hard': '4px 4px 0px 0px rgba(0,0,0,1)' }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        body:not(.dark) { background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 40px 40px; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #10b981, #000); }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-gray-300 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
+
+    <div class="top-bar"></div>
+
+    <nav class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-theme-500/30 pb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-2">
+                <span class="w-3 h-3 bg-theme-500 rounded-full animate-pulse"></span>
+                <span class="font-mono text-xs font-bold text-gray-500 dark:text-theme-500 tracking-widest uppercase">Knowledge Base // 03</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold tracking-tighter text-black dark:text-white leading-none">CRYPTO_GRAPHY</h1>
+        </div>
+        <div class="flex gap-4">
+            <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                <svg class="w-5 h-5 hidden dark:block text-theme-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg class="w-5 h-5 block dark:hidden text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            </button>
+            <a href="../index.html" class="group flex items-center gap-2 text-sm font-bold border-2 border-black dark:border-white px-4 py-2 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                [ RETURN HOME ]
+            </a>
+        </div>
+    </nav>
+
+    <main class="w-full max-w-5xl space-y-8">
+        
+        <article class="bg-white dark:bg-[#0a0a0a] border-2 border-black dark:border-theme-500 p-6 md:p-8 shadow-hard dark:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-colors">
+            <h2 class="text-3xl font-bold mb-4 flex items-center gap-2 text-black dark:text-white">
+                <span class="bg-theme-500 text-white px-2 py-0.5 text-sm font-mono">INTRO</span> Mathematics & Logic
+            </h2>
+            <p class="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
+                Crypto 侧重于古典密码与现代密码学的算法原理。你需要深厚的数学基础，去破解那些看似杂乱无章的密文。
+            </p>
+        </article>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 shadow-hard hover:border-black dark:hover:border-theme-500 transition-colors">
+                <h3 class="font-mono text-gray-400 text-xs mb-2">ALGORITHMS</h3>
+                <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">常见算法</h4>
+                <ul class="space-y-2 text-sm font-mono text-gray-600 dark:text-gray-400">
+                    <li class="flex justify-between"><span>对称密码</span> <span class="text-theme-500">AES, DES, RC4</span></li>
+                    <li class="flex justify-between"><span>非对称密码</span> <span class="text-theme-500">RSA, ECC</span></li>
+                    <li class="flex justify-between"><span>哈希函数</span> <span class="text-theme-500">MD5, SHA-256</span></li>
+                </ul>
+            </article>
+
+            <article class="bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-gray-800 p-6 shadow-hard hover:border-black dark:hover:border-theme-500 transition-colors">
+                <h3 class="font-mono text-gray-400 text-xs mb-2">TARGETS</h3>
+                <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">攻击对象</h4>
+                <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
+                    <li><span class="font-bold text-black dark:text-white">>></span> 分组密码模式漏洞 (ECB/CBC)</li>
+                    <li><span class="font-bold text-black dark:text-white">>></span> 大整数因子分解 (RSA)</li>
+                    <li><span class="font-bold text-black dark:text-white">>></span> 离散对数问题 (DLP)</li>
+                </ul>
+            </article>
+        </div>
+
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-px bg-black dark:bg-gray-700 flex-grow"></div>
+                <span class="font-mono text-sm font-bold bg-black dark:bg-theme-600 text-white px-3 py-1">CALCULATORS</span>
+                <div class="h-px bg-black dark:bg-gray-700 flex-grow"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default">
+                    <strong class="block font-bold mb-2 dark:text-white group-hover:text-white">Python Libs</strong>
+                    <div class="flex flex-wrap gap-1 text-[10px] font-mono text-gray-500 dark:text-gray-500 group-hover:text-white">
+                        <span class="border border-current px-1 rounded">pycryptodome</span>
+                        <span class="border border-current px-1 rounded">gmpy2</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group flex flex-col justify-center cursor-default">
+                    <strong class="block font-bold dark:text-white group-hover:text-white">SageMath</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 mt-1 group-hover:text-white">Advanced Math Tool</span>
+                </div>
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group flex flex-col justify-center cursor-default">
+                    <strong class="block font-bold dark:text-white group-hover:text-white">CyberChef</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 mt-1 group-hover:text-white">The Cyber Swiss Army Knife</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-16 py-8 text-center text-xs text-gray-400 font-mono w-full border-t border-gray-200 dark:border-gray-800">
+        // UCATFLAGS CRYPTO DIVISION //
+    </footer>
+</body>
+</html>

@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCATFLAGS 2025+ | CTF Competition</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#FCD34D',
+                            500: '#D4AF37',
+                            600: '#B4942A',
+                            900: '#423408',
+                        },
+                        dark: {
+                            bg: '#020202',
+                            surface: '#0a0a0a',
+                            border: '#262626'
+                        },
+                        light: {
+                            bg: '#f8fafc',
+                            surface: '#ffffff',
+                            text: '#111827'
+                        }
+                    },
+                    fontFamily: {
+                        'mono': ['"JetBrains Mono"', 'monospace'],
+                        'sans': ['"Space Grotesk"', 'sans-serif'],
+                        'serif': ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)', // 亮色模式硬阴影
+                        'hard-gold': '4px 4px 0px 0px rgba(212, 175, 55, 0.3)', // 暗色模式硬阴影
+                    },
+                    animation: { 'page-enter': 'fadeIn 0.5s ease-out forwards' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --cursor-size: 20px;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* 亮色模式网格背景 */
+        body:not(.dark) {
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* 滚动条适配 */
+        ::-webkit-scrollbar { width: 6px; }
+        .dark ::-webkit-scrollbar-track { background: #020202; }
+        .dark ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
+        ::-webkit-scrollbar-track { background: #fff; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border: 1px solid #eee; }
+
+        /* 字体类 */
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* 噪点叠加层 */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 999; opacity: 0.04;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Three.js Canvas (全局背景) */
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.8; transition: opacity 0.5s; }
+
+        /* Fabric Canvas (Hero 标题) */
+        #fabric-canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 10; 
+            cursor: pointer;
+            transition: filter 0.5s;
+        }
+        
+        .dark #fabric-canvas { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
+        html:not(.dark) #fabric-canvas { filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2)); }
+
+        /* --- 交互式光标 --- */
+        #cursor {
+            position: fixed; top: 0; left: 0;
+            width: var(--cursor-size); height: var(--cursor-size);
+            border-radius: 50%;
+            pointer-events: none; z-index: 9999;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: normal;
+            transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
+        }
+        
+        /* Dark Mode Cursor */
+        .dark #cursor { border: 1px solid rgba(212, 175, 55, 0.6); box-shadow: 0 0 0px rgba(212, 175, 55, 0); }
+        .dark #cursor.hovered { background-color: rgba(212, 175, 55, 0.15); border-color: #D4AF37; transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+
+        /* Light Mode Cursor */
+        html:not(.dark) #cursor { border: 1px solid rgba(0, 0, 0, 0.8); }
+        html:not(.dark) #cursor.hovered { background-color: rgba(0, 0, 0, 0.1); border-color: #000; transform: translate(-50%, -50%) scale(1.1); }
+
+        /* 基础悬停错位 - 适配 */
+        .glitch-hover { position: relative; transition: all 0.2s; }
+        .dark .glitch-hover:hover { color: #D4AF37; text-shadow: 2px 0 #fff, -2px 0 #b4942a; }
+        html:not(.dark) .glitch-hover:hover { color: #000; text-shadow: 2px 0 #D4AF37, -2px 0 #666; }
+
+        /* --- 风格化卡片 (Hard Shadow style) --- */
+        .card-inner {
+            position: relative;
+            height: 100%;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+        }
+        /* Dark Card */
+        .dark .card-inner {
+            background: rgba(10, 10, 10, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+        .dark .card-inner:hover {
+            border-color: #D4AF37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            transform: translateY(-4px);
+        }
+        /* Light Card (Brutalist Style) */
+        html:not(.dark) .card-inner {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0px 0px #000; /* Hard Shadow */
+        }
+        html:not(.dark) .card-inner:hover {
+            transform: translate(2px, 2px); /* Click effect */
+            box-shadow: 2px 2px 0px 0px #000;
+        }
+
+        .card-content { position: relative; z-index: 2; }
+        
+        /* Glare */
+        .card-glare {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: screen; z-index: 1;
+        }
+        .dark .card-glare { background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(255, 215, 0, 0.15) 0%, transparent 60%); }
+        html:not(.dark) .card-glare { background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(0, 0, 0, 0.05) 0%, transparent 60%); mix-blend-mode: multiply; }
+        .card-container:hover .card-glare { opacity: 1; }
+
+        /* Skill Tag */
+        .skill-tag {
+            display: inline-block; font-size: 0.75rem; padding: 2px 8px;
+            margin-right: 4px; margin-bottom: 4px;
+            transition: all 0.2s; font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+        }
+        .dark .skill-tag { border: 1px solid rgba(100, 100, 100, 0.3); color: #888; }
+        .dark .card-container:hover .skill-tag { border-color: #D4AF37; color: #000; background: #D4AF37; }
+        
+        html:not(.dark) .skill-tag { border: 1px solid #000; color: #000; background: transparent; }
+        html:not(.dark) .card-container:hover .skill-tag { background: #000; color: #fff; }
+
+        /* --- 倒计时 --- */
+        .countdown-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 1rem; min-width: 80px; backdrop-filter: blur(4px);
+        }
+        .dark .countdown-item { border: 1px solid rgba(212, 175, 55, 0.2); background: rgba(5, 5, 5, 0.8); }
+        html:not(.dark) .countdown-item { border: 2px solid #000; background: rgba(255, 255, 255, 0.9); box-shadow: 4px 4px 0px 0px #000; }
+
+        /* Timeline */
+        .timeline-item .timeline-dot { transition: all 0.3s; }
+        .dark .timeline-active .timeline-dot { background-color: #D4AF37 !important; box-shadow: 0 0 15px #D4AF37; }
+        html:not(.dark) .timeline-active .timeline-dot { background-color: #000 !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000; }
+        
+        .timeline-item h3 { transition: color 0.3s; }
+        .dark .timeline-active h3 { color: #D4AF37; }
+        html:not(.dark) .timeline-active h3 { color: #000; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: #D4AF37; }
+
+        /* Badges */
+        .badge-live { padding: 2px 6px; font-size: 0.6rem; font-weight: bold; margin-left: 8px; border-radius: 0px; letter-spacing: 1px;}
+        .dark .badge-live { background: #D4AF37; color: #000; }
+        html:not(.dark) .badge-live { background: #000; color: #fff; border: 1px solid #000; }
+
+        .badge-done { padding: 2px 6px; font-size: 0.6rem; margin-left: 8px; border-radius: 0px;}
+        .dark .badge-done { background: #222; color: #666; border: 1px solid #444; }
+        html:not(.dark) .badge-done { background: #eee; color: #999; border: 1px solid #999; }
+        
+        section { padding: 8rem 1rem; max-width: 1400px; margin: 0 auto; }
+        
+        /* Mobile Menu */
+        #mobile-menu {
+            transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        #mobile-menu.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #mobile-menu:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-gray-300 selection:bg-gold-500 selection:text-white transition-colors duration-500 animate-page-enter">
+
+    <div class="noise-overlay"></div>
+    <div id="cursor"></div>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-6 backdrop-blur-md border-b transition-colors duration-500 
+        dark:bg-black/60 dark:border-gold-500/20 
+        bg-white/90 border-black">
+        
+        <div class="text-xl font-bold tracking-tighter cursor-pointer hover-trigger transition-colors dark:text-gold-500 text-black flex items-center gap-2">
+            <span class="w-3 h-3 bg-current rounded-full"></span>
+            UCATFLAGS_
+        </div>
+        
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-widest font-bold">
+            <a href="notice/notice.html" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">公告</a>
+            <a href="#about" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">介绍</a>
+            <a href="#tracks" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">赛题</a>
+            <a href="#schedule" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">赛程</a>
+            <a href="#details" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">评分</a>
+            
+            <!-- 主题切换 -->
+            <button onclick="toggleTheme()" class="hover-trigger p-2 rounded-full transition-colors dark:hover:bg-white/10 hover:bg-black/5">
+                <svg class="w-5 h-5 hidden dark:block text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <svg class="w-5 h-5 block dark:hidden text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            </button>
+
+            <a href="https://www.wjx.cn/vm/hG49aBH.aspx#" target="_blank" class="px-5 py-2 text-sm font-bold transition-all hover-trigger
+                dark:text-black dark:bg-gold-500 dark:hover:bg-white dark:border-none
+                text-white bg-black hover:bg-white hover:text-black border-2 border-transparent hover:border-black shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                立即报名
+            </a>
+        </div>
+
+        <!-- Mobile Hamburger -->
+        <button id="mobile-menu-btn" class="md:hidden text-2xl hover-trigger dark:text-white text-black p-2">
+            ☰
+        </button>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="hidden fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl flex flex-col justify-center items-center text-center">
+        <button id="close-menu-btn" class="absolute top-6 right-6 text-4xl dark:text-white text-black">&times;</button>
+        <div class="flex flex-col space-y-8 text-xl font-bold tracking-widest uppercase dark:text-white text-black">
+            <a href="notice/notice.html" class="mobile-link hover:text-gold-500 transition-colors">公告</a>
+            <a href="#about" class="mobile-link hover:text-gold-500 transition-colors">介绍</a>
+            <a href="#tracks" class="mobile-link hover:text-gold-500 transition-colors">赛题</a>
+            <a href="#schedule" class="mobile-link hover:text-gold-500 transition-colors">赛程</a>
+            <a href="#details" class="mobile-link hover:text-gold-500 transition-colors">评分</a>
+            <div class="pt-8">
+                <button onclick="toggleTheme()" class="border px-6 py-2 rounded-full border-current flex items-center justify-center gap-2 mx-auto">
+                    <span class="text-sm">切换主题</span>
+                    <svg class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    <svg class="w-4 h-4 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Header -->
+    <header class="h-screen flex flex-col justify-center items-center relative px-4 perspective-container overflow-hidden">
+        
+        <!-- Fabric Canvas (织物标题特效) -->
+        <canvas id="fabric-canvas"></canvas>
+
+        <div class="absolute top-[10%] left-0 w-full text-center pointer-events-none z-20 transition-opacity duration-500 dark:opacity-40 opacity-100">
+            <p class="font-mono text-xs tracking-[1em] dark:text-gold-600 text-black/50 font-bold">中国科学院大学本科部级CTF赛事</p>
+        </div>
+
+        <h1 class="sr-only">UCATFLAGS 2025+</h1>
+
+        <!-- 交互提示 -->
+        <!-- <div class="ui-layer" style="bottom: 160px;">
+            [ SYSTEM: ONLINE ]<br>
+            <span class="dark:text-gold-500 text-black font-bold">CLICK TITLE</span> TO BREACH
+        </div> -->
+
+        <!-- 倒计时 -->
+        <div class="grid grid-cols-4 gap-4 mt-[55vh] mb-12 font-mono z-30 relative transition-colors duration-500">
+            <div class="countdown-item hover-trigger">
+                <span id="days" class="text-3xl font-bold dark:text-white text-black">00</span><span class="text-xs dark:text-gold-500 text-gray-500 font-bold">DAYS</span>
+            </div>
+            <div class="countdown-item hover-trigger">
+                <span id="hours" class="text-3xl font-bold dark:text-white text-black">00</span><span class="text-xs dark:text-gold-500 text-gray-500 font-bold">HR</span>
+            </div>
+            <div class="countdown-item hover-trigger">
+                <span id="minutes" class="text-3xl font-bold dark:text-white text-black">00</span><span class="text-xs dark:text-gold-500 text-gray-500 font-bold">MIN</span>
+            </div>
+            <div class="countdown-item hover-trigger">
+                <span id="seconds" class="text-3xl font-bold dark:text-white text-black">00</span><span class="text-xs dark:text-gold-500 text-gray-500 font-bold">SEC</span>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-10 animate-bounce text-xs tracking-widest dark:text-gray-600 text-black font-bold z-30">
+            SCROLL TO EXPLORE
+        </div>
+    </header>
+
+    <!-- About -->
+    <section id="about" class="grid md:grid-cols-2 gap-12 items-start relative z-10 transition-colors duration-500 bg-gradient-to-b dark:from-transparent dark:to-[#020202] from-transparent to-white">
+        <div>
+            <h2 class="text-5xl font-serif mb-8 border-l-4 pl-6 glitch-hover transition-colors dark:border-gold-500 dark:text-white border-black text-black">
+                Introduction
+            </h2>
+        </div>
+        <div class="font-mono leading-relaxed text-sm dark:text-gray-400 text-gray-800">
+            <p class="mb-6"><strong class="dark:text-gold-500 text-black bg-yellow-200 dark:bg-transparent px-1">UCATFLAGS</strong> 是由中国科学院大学本科CTF竞赛小组主办、本科部支持的顶级网络安全赛事。我们不仅寻找漏洞，更在比特流中寻找秩序。</p>
+            <div class="p-4 border mt-4 backdrop-blur-md rounded-sm transition-colors dark:border-gray-800 dark:bg-gray-900/40 border-black bg-white shadow-hard">
+                <span class="dark:text-gold-500 text-black font-bold">$ cat eligibility.txt</span><br>
+                > 对象：中国科学院大学在校本科生<br>
+                > 组队：1-4人/队 (根据年级限制)
+            </div>
+        </div>
+    </section>
+
+    <!-- Tracks -->
+    <section id="tracks" class="relative z-10">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16">
+            <h2 class="text-5xl md:text-6xl font-serif leading-tight glitch-hover dark:text-white text-black">
+                Challenges
+            </h2>
+            <div class="text-right mt-4 md:mt-0 font-mono text-xs dark:text-gray-600 text-gray-500 font-bold">
+                // MODULES_COUNT: 6 <br> // STATUS: DEPLOYED
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Web -->
+            <a href="web/web.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">01</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">HTTP</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Web 安全</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">攻破应用防线，注入灵魂。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">SQLi</span><span class="skill-tag">RCE</span><span class="skill-tag">Java</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Pwn -->
+            <a href="binary/binary.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">02</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">BIN</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Pwn</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">内存与寄存器的死亡之舞。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">Stack</span><span class="skill-tag">Heap</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Reverse -->
+            <a href="binary/binary.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">03</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">ASM</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Reverse</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">抽丝剥茧，还原逻辑真相。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">IDA</span><span class="skill-tag">Anti-Debug</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Crypto -->
+            <a href="crypto/crypto.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">04</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">MATH</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Crypto</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">数学迷宫中的唯一密钥。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">RSA</span><span class="skill-tag">ECC</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Misc -->
+            <a href="misc/misc.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">05</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">DATA</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Misc</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">数据隐藏与取证的艺术。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">Forensics</span><span class="skill-tag">Stego</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            
+            <!-- PPC -->
+            <a href="ppc/ppc.html" class="card-container h-[350px] hover-trigger group block">
+                <div class="card-inner w-full h-full relative flex flex-col p-8 rounded-sm">
+                    <div class="card-glare"></div>
+                    <div class="card-content">
+                        <div class="flex justify-between mb-6">
+                            <span class="font-serif text-4xl italic transition-colors dark:text-gray-700 dark:group-hover:text-gold-500 text-gray-300 group-hover:text-black">06</span>
+                            <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">ALG</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">PPC</h3>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">代码速度与逻辑的极致对抗。</p>
+                        <div class="flex flex-wrap gap-1">
+                            <span class="skill-tag">Python</span><span class="skill-tag">Algo</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Schedule -->
+    <section id="schedule" class="relative z-10">
+        <h2 class="text-5xl font-serif mb-12 glitch-hover dark:text-white text-black">Timeline</h2>
+        <div class="relative border-l-2 ml-4 pl-8 space-y-12 transition-colors dark:border-gray-800 border-gray-200">
+            
+            <div class="timeline-item relative" data-end="2026-03-07T23:59:59">
+                <div class="timeline-dot absolute -left-[37px] top-2 w-3 h-3 rounded-full transition-all duration-300 bg-gray-300 dark:bg-white border-2 border-white dark:border-none ring-2 ring-black dark:ring-0"></div>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-4">
+                    <span class="font-mono min-w-[150px] dark:text-gray-500 text-gray-400 font-bold">2026.03.07</span>
+                    <div>
+                        <h3 class="text-xl font-bold dark:text-white text-black">报名截止 <span class="badge-done" style="display:none">ENDED</span></h3>
+                        <p class="text-sm mt-1 dark:text-gray-500 text-gray-500">组队系统关闭。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-item relative" data-start="2026-03-09T08:00:00" data-end="2026-03-20T23:59:59">
+                <div class="timeline-dot absolute -left-[37px] top-2 w-3 h-3 rounded-full transition-all duration-300 bg-gray-300 dark:bg-white border-2 border-white dark:border-none ring-2 ring-black dark:ring-0"></div>
+                <div class="flex flex-col md:flex-row md:items-baseline gap-4">
+                    <span class="font-mono min-w-[150px] dark:text-gray-500 text-gray-400 font-bold">03.09 - 03.20</span>
+                    <div>
+                        <h3 class="text-xl font-bold dark:text-white text-black">CTF 线上夺旗赛 <span class="badge-live" style="display:none">LIVE</span></h3>
+                        <p class="text-sm mt-1 dark:text-gray-500 text-gray-500">主赛程。Dynamic Scoring System Active.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Details -->
+    <section id="details" class="relative z-10">
+        <h2 class="text-5xl font-serif mb-12 glitch-hover dark:text-white text-black">Scoring</h2>
+        <div class="glass-table-container border p-6 backdrop-blur-sm rounded-sm transition-colors dark:border-gray-800 dark:bg-gray-900/40 border-black bg-white shadow-hard">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-white text-black">Dynamic Scoring</h3>
+                    <p class="text-sm leading-relaxed font-mono dark:text-gray-400 text-gray-600">
+                        本届比赛采用动态分值系统。题目的基础分值为 500 分。随着解出该题目的队伍数量增加，该题目的分值将按照特定算法呈指数级下降，最低降至 50 分。
+                    </p>
+                    <div class="mt-4 h-1 w-full bg-gradient-to-r dark:from-gold-500 from-black to-transparent"></div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold mb-4 dark:text-white text-black">Bonus</h3>
+                    <ul class="text-sm space-y-2 font-mono dark:text-gray-400 text-gray-600">
+                        <li class="flex justify-between border-b pb-2 dark:border-gray-800 border-gray-200"><span>First Blood (一血)</span> <span class="dark:text-gold-400 text-black bg-yellow-200 dark:bg-transparent px-1 font-bold">+5% pts</span></li>
+                        <li class="flex justify-between border-b pb-2 dark:border-gray-800 border-gray-200"><span>Second Blood (二血)</span> <span class="dark:text-gray-300 text-gray-700 font-bold">+3% pts</span></li>
+                        <li class="flex justify-between border-b pb-2 dark:border-gray-800 border-gray-200"><span>Third Blood (三血)</span> <span class="text-orange-500 font-bold">+1% pts</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t py-12 text-center font-mono text-xs relative z-10 transition-colors
+        dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600
+        border-black bg-white text-gray-500">
+        <p>UCATFLAGS 2025+ // HACK THE PLANET</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // --- 主题管理逻辑 ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.toggle('dark');
+            updateThreeTheme(isDark);
+        }
+
+        // --- 汉堡菜单逻辑 ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function openMenu() {
+            mobileMenu.classList.remove('hidden');
+        }
+
+        function closeMenu() {
+            mobileMenu.classList.add('hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', closeMenu);
+        });
+
+        // --- 1. Fabric Canvas Logic ---
+        const fCanvas = document.getElementById('fabric-canvas');
+        const fCtx = fCanvas.getContext('2d');
+        let fWidth, fHeight;
+        let particles = [];
+        let fMouse = { x: -1000, y: -1000, click: false };
+
+        const F_CONFIG = {
+            textLines: ["UCATFLAGS", "2025+"],
+            fontFamily: "Playfair Display, serif",
+            fontWeight: "900",
+            fontSize: 100,
+            lineHeight: 120,
+            particleGap: 11,
+            mouseRadius: 60,
+            clickRadius: 60,
+            clickForce: 35,
+            spring: 0.08,
+            friction: 0.92,
+            gravity: 0.4,
+            recoveryTime: 180,
+            connectionDist: 30,
+            colorDark: '#D4AF37',   
+            colorLight: '#111827',  
+            brokenDark: '#FFFFFF',  
+            brokenLight: '#D4AF37'  
+        };
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.originX = x; this.originY = y;
+                this.vx = 0; this.vy = 0;
+                this.size = Math.random() * 2 + 1;
+                this.isBroken = false; this.breakTimer = 0; this.alpha = Math.random() * 0.5 + 0.5;
+                const isDark = document.documentElement.classList.contains('dark');
+                this.currentColor = isDark ? F_CONFIG.colorDark : F_CONFIG.colorLight;
+            }
+            update(isDark) {
+                const baseColor = isDark ? F_CONFIG.colorDark : F_CONFIG.colorLight;
+                const brokenColor = isDark ? F_CONFIG.brokenDark : F_CONFIG.brokenLight;
+                const dx = fMouse.x - this.x; const dy = fMouse.y - this.y; const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (fMouse.click && dist < F_CONFIG.clickRadius) {
+                    const force = (F_CONFIG.clickRadius - dist) / F_CONFIG.clickRadius;
+                    const angle = Math.atan2(dy, dx);
+                    this.vx -= Math.cos(angle) * force * F_CONFIG.clickForce;
+                    this.vy -= Math.sin(angle) * force * F_CONFIG.clickForce;
+                    this.isBroken = true; this.breakTimer = F_CONFIG.recoveryTime; this.currentColor = brokenColor; this.alpha = 1;
+                }
+                if (dist < F_CONFIG.mouseRadius && !this.isBroken) {
+                    const force = (F_CONFIG.mouseRadius - dist) / F_CONFIG.mouseRadius;
+                    const angle = Math.atan2(dy, dx);
+                    this.vx -= Math.cos(angle) * force * 3; this.vy -= Math.sin(angle) * force * 3;
+                }
+                if (this.isBroken) {
+                    this.vy += F_CONFIG.gravity; this.breakTimer--;
+                    if (this.y > fHeight) { this.y = fHeight; this.vy *= -0.5; }
+                    if (this.breakTimer <= 0) { this.isBroken = false; this.currentColor = baseColor; this.alpha = Math.random() * 0.5 + 0.5; }
+                } else {
+                    this.currentColor = baseColor;
+                    const springX = (this.originX - this.x) * F_CONFIG.spring;
+                    const springY = (this.originY - this.y) * F_CONFIG.spring;
+                    this.vx += springX; this.vy += springY;
+                }
+                this.vx *= F_CONFIG.friction; this.vy *= F_CONFIG.friction;
+                this.x += this.vx; this.y += this.vy;
+            }
+            draw() {
+                fCtx.globalAlpha = this.alpha; fCtx.fillStyle = this.currentColor; fCtx.fillRect(this.x, this.y, this.size, this.size); fCtx.globalAlpha = 1.0;
+            }
+        }
+
+        function initFabric() {
+            fWidth = window.innerWidth; fHeight = window.innerHeight;
+            if(fWidth <= 0 || fHeight <= 0) return;
+            fCanvas.width = fWidth; fCanvas.height = fHeight;
+            if (fWidth < 768) { F_CONFIG.particleGap = 3; F_CONFIG.connectionDist = 9; } else { F_CONFIG.particleGap = 6; F_CONFIG.connectionDist = 18; }
+            const calculatedSize = fWidth * 0.12; 
+            const currentFontSize = Math.min(Math.max(calculatedSize, 60), 160);
+            const currentLineHeight = currentFontSize * 1.2;
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = fWidth; tempCanvas.height = fHeight;
+            tempCtx.font = `${F_CONFIG.fontWeight} ${currentFontSize}px ${F_CONFIG.fontFamily}`;
+            tempCtx.fillStyle = 'white'; tempCtx.textAlign = 'center'; tempCtx.textBaseline = 'middle';
+            const startY = fHeight * 0.35; 
+            F_CONFIG.textLines.forEach((line, index) => { tempCtx.fillText(line, fWidth / 2, startY + index * currentLineHeight); });
+            const imageData = tempCtx.getImageData(0, 0, fWidth, fHeight);
+            const data = imageData.data;
+            particles = [];
+            for (let y = 0; y < fHeight; y += F_CONFIG.particleGap) {
+                for (let x = 0; x < fWidth; x += F_CONFIG.particleGap) {
+                    if (data[(y * fWidth + x) * 4 + 3] > 128) { particles.push(new Particle(x, y)); }
+                }
+            }
+        }
+
+        function animateFabric() {
+            fCtx.clearRect(0, 0, fWidth, fHeight); fCtx.lineWidth = 0.5;
+            const isDark = document.documentElement.classList.contains('dark');
+            const lineColor = isDark ? '212, 175, 55' : '0, 0, 0';
+            for (let i = 0; i < particles.length; i++) {
+                const p1 = particles[i]; p1.update(isDark); p1.draw();
+                if (!p1.isBroken) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const p2 = particles[j];
+                        if (Math.abs(p1.x - p2.x) > F_CONFIG.connectionDist) continue;
+                        if (Math.abs(p1.y - p2.y) > F_CONFIG.connectionDist) continue;
+                        const dist = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+                        if (dist < F_CONFIG.connectionDist) {
+                            const alpha = (1 - dist / F_CONFIG.connectionDist) * 0.7;
+                            fCtx.strokeStyle = `rgba(${lineColor}, ${alpha})`; fCtx.beginPath(); fCtx.moveTo(p1.x, p1.y); fCtx.lineTo(p2.x, p2.y); fCtx.stroke();
+                        }
+                    }
+                }
+            }
+            if (fMouse.click) fMouse.click = false;
+            requestAnimationFrame(animateFabric);
+        }
+        
+        window.addEventListener('resize', () => { setTimeout(initFabric, 100); });
+        fCanvas.addEventListener('mousemove', e => { const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.clientX - rect.left; fMouse.y = e.clientY - rect.top; });
+        fCanvas.addEventListener('mousedown', e => { fMouse.click = true; const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.clientX - rect.left; fMouse.y = e.clientY - rect.top; });
+        fCanvas.addEventListener('touchstart', e => { fMouse.click = true; const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.touches[0].clientX - rect.left; fMouse.y = e.touches[0].clientY - rect.top; });
+        document.fonts.ready.then(function () { initFabric(); animateFabric(); });
+
+        const cursor = document.getElementById('cursor');
+        const hoverTriggers = document.querySelectorAll('.hover-trigger');
+        document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
+        hoverTriggers.forEach(el => { el.addEventListener('mouseenter', () => cursor.classList.add('hovered')); el.addEventListener('mouseleave', () => cursor.classList.remove('hovered')); });
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from(".countdown-item", { duration: 1, y: 30, opacity: 0, delay: 1, stagger: 0.2 });
+        gsap.utils.toArray("section h2").forEach(h2 => { gsap.from(h2, { scrollTrigger: { trigger: h2, start: "top 80%", toggleActions: "play none none reverse" }, y: 50, opacity: 0, duration: 1 }); });
+        gsap.from(".card-container", { scrollTrigger: { trigger: "#tracks", start: "top 70%" }, y: 50, opacity: 0, duration: 0.8, stagger: 0.1 });
+
+        const bgCanvas = document.querySelector('#bg-canvas');
+        const scene = new THREE.Scene();
+        // 初始为 Light Mode 的白色雾
+        scene.fog = new THREE.FogExp2(0xffffff, 0.002);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(window.devicePixelRatio);
+        
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 400; 
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i = 0; i < particlesCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 150; }
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        // 初始为 Light Mode 的黑色粒子
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.25, color: 0x000000, transparent: true, opacity: 0.6 });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        camera.position.z = 30; camera.position.y = 5;
+
+        function updateThreeTheme(isDark) {
+            if (isDark) {
+                gsap.to(scene.fog.color, { r: 2/255, g: 2/255, b: 2/255, duration: 0.5 });
+                gsap.to(particlesMaterial.color, { r: 212/255, g: 175/255, b: 55/255, duration: 0.5 });
+            } else {
+                gsap.to(scene.fog.color, { r: 1, g: 1, b: 1, duration: 0.5 });
+                gsap.to(particlesMaterial.color, { r: 0, g: 0, b: 0, duration: 0.5 });
+            }
+        }
+
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (event) => { mouseX = event.clientX / window.innerWidth - 0.5; mouseY = event.clientY / window.innerHeight - 0.5; });
+        const clock = new THREE.Clock();
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const elapsedTime = clock.getElapsedTime();
+            particlesMesh.rotation.y = elapsedTime * 0.05;
+            camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (-mouseY * 2 + 5 - camera.position.y) * 0.05;
+            camera.lookAt(0, 0, 0);
+            renderer.render(scene, camera);
+        }
+        animateThree();
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+        const cards = document.querySelectorAll('.card-container');
+        cards.forEach(card => {
+            const glare = card.querySelector('.card-glare');
+            card.addEventListener('mousemove', (e) => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; glare.style.setProperty('--mouse-x', `${x}px`); glare.style.setProperty('--mouse-y', `${y}px`); });
+        });
+
+        const targetDate = new Date('2026-03-09T08:00:00').getTime(); 
+        function updateStatus() {
+            const now = new Date().getTime(); const distance = targetDate - now;
+            if (distance > 0) {
+                document.getElementById("days").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2,'0');
+                document.getElementById("hours").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2,'0');
+                document.getElementById("minutes").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2,'0');
+                document.getElementById("seconds").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2,'0');
+            }
+        }
+        setInterval(updateStatus, 1000); updateStatus();
+    </script>
+</body>
+</html>
