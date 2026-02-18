@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="light">
+<html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +25,7 @@
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 60; background: linear-gradient(90deg, #a855f7, #000); }
         
-        #mobile-menu { transition: opacity 0.3s, visibility 0.3s; }
+        #mobile-menu { transition: opacity 0.3s ease, visibility 0.3s ease; }
         .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
         .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; }
     </style>
@@ -33,38 +33,8 @@
 <body class="bg-[#f8fafc] text-gray-900 dark:bg-[#050505] dark:text-gray-300 min-h-screen flex flex-col items-center py-12 px-4 md:px-6 animate-page-enter">
 
     <div class="top-bar"></div>
-
-    <nav class="w-full max-w-5xl mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-theme-500/30 pb-6 gap-4 relative">
-        <div class="flex justify-between w-full md:w-auto items-center">
-            <div>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="w-3 h-3 bg-theme-500 rounded-full animate-pulse"></span>
-                    <span class="font-mono text-xs font-bold text-gray-500 dark:text-theme-500 tracking-widest uppercase">Knowledge Base // 04</span>
-                </div>
-                <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">MISCELLANEOUS</h1>
-            </div>
-            <button onclick="toggleMenu()" class="md:hidden text-3xl p-2 z-50">☰</button>
-        </div>
-
-        <div class="hidden md:flex gap-4">
-            <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-                <span class="dark:hidden">☀</span><span class="hidden dark:inline">☾</span>
-            </button>
-            <a href="../index.html" class="group flex items-center gap-2 text-sm font-bold border-2 border-black dark:border-white px-4 py-2 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-                [ RETURN HOME ]
-            </a>
-        </div>
-    </nav>
-
-    <div id="mobile-menu" class="hidden-menu fixed inset-0 z-[100] bg-white/95 dark:bg-black/95 backdrop-blur flex flex-col justify-center items-center gap-8 text-black dark:text-white">
-        <button onclick="toggleMenu()" class="absolute top-6 right-6 text-5xl hover:text-theme-500 transition-colors">&times;</button>
-        <div class="flex flex-col items-center gap-6">
-            <a href="../index.html" class="text-3xl font-bold uppercase hover:text-theme-500 tracking-tighter">[ RETURN HOME ]</a>
-            <button onclick="document.documentElement.classList.toggle('dark')" class="border-2 border-current px-8 py-3 rounded-full text-lg font-mono hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all">
-                SWITCH THEME
-            </button>
-        </div>
-    </div>
+    <div id="nav-container" class="w-full max-w-5xl"></div>
+    <div id="menu-container"></div>
 
     <main class="w-full max-w-5xl space-y-8">
         
@@ -73,7 +43,7 @@
                 <span class="bg-theme-500 text-white px-2 py-0.5 text-sm font-mono">INTRO</span> Security General
             </h2>
             <p class="text-gray-700 dark:text-gray-300 text-base md:text-lg leading-relaxed">
-                MISC 包罗万象，考察选手的综合能力。涉及隐写术、流量分析、取证技术以及各种脑洞大开的谜题。
+                MISC 包罗万象，考察选手的综合能力与脑洞。涉及隐写术、流量分析、取证技术以及各种非传统安全挑战。
             </p>
         </article>
 
@@ -82,10 +52,10 @@
                 <h3 class="font-mono text-gray-400 text-xs mb-2">DATA</h3>
                 <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">文件与数据</h4>
                 <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>File Analysis</strong>: 修复文件头, 提取数据</li>
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Steganography</strong>: LSB, 图片/音频隐写</li>
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Encoding</strong>: Base64, ROT13, Morse</li>
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Archives</strong>: 伪加密, 压缩包爆破</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>File Analysis</strong>: 文件头修复, 提取隐藏数据</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Steganography</strong>: LSB, 频谱图, 盲水印</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Encoding</strong>: Base64, ROT13, 核心价值观编码</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Archives</strong>: 伪加密, CRC32 爆破, 明文攻击</li>
                 </ul>
             </article>
 
@@ -93,10 +63,10 @@
                 <h3 class="font-mono text-gray-400 text-xs mb-2">FORENSICS</h3>
                 <h4 class="text-xl font-bold mb-4 border-b-2 border-theme-500/30 pb-2 inline-block dark:text-white">取证与分析</h4>
                 <ul class="space-y-3 text-sm font-mono text-gray-600 dark:text-gray-400">
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Traffic</strong>: Wireshark 流量包分析</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Traffic</strong>: Wireshark 流量包分析 (USB/WiFi)</li>
                     <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Memory</strong>: 内存镜像取证 (Volatility)</li>
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Disk</strong>: 磁盘数据恢复与分析</li>
-                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Log</strong>: 系统日志审计</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Disk</strong>: 磁盘数据恢复 (DiskGenius)</li>
+                    <li class="flex gap-2"><span class="text-theme-500">>></span> <strong>Log</strong>: 系统日志审计, 攻击痕迹追踪</li>
                 </ul>
             </article>
         </div>
@@ -108,24 +78,7 @@
                 <div class="h-px bg-black dark:bg-gray-700 flex-grow"></div>
             </div>
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default group">
-                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">WinHex</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Hex Editor</span>
-                </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default group">
-                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Wireshark</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Network</span>
-                </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default group">
-                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Binwalk</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Firmware</span>
-                </div>
-                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors cursor-default group">
-                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">Volatility</strong>
-                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">Memory</span>
-                </div>
-            </div>
+            <div id="toolkit-container" class="flex flex-wrap justify-center gap-4"></div>
         </section>
     </main>
 
@@ -134,16 +87,110 @@
     </footer>
 
     <script>
+        const pageConfig = {
+            title: "MISCELLANEOUS",
+            subtitle: "Knowledge Base // 04",
+            tools: [
+                { name: "WinHex", desc: "Hex Editor" },
+                { name: "Wireshark", desc: "Network" },
+                { name: "Binwalk", desc: "Firmware" },
+                { name: "Volatility", desc: "Memory" }
+            ]
+        };
+
+        function renderNav() {
+            const navHTML = `
+            <nav class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end border-b-2 border-black dark:border-theme-500/30 pb-6 gap-4 relative">
+                <div class="flex justify-between w-full md:w-auto items-center">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-3 h-3 bg-theme-500 rounded-full animate-pulse"></span>
+                            <span class="font-mono text-xs font-bold text-gray-500 dark:text-theme-500 tracking-widest uppercase">${pageConfig.subtitle}</span>
+                        </div>
+                        <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-black dark:text-white leading-none">${pageConfig.title}</h1>
+                    </div>
+                    <button onclick="toggleMenu()" class="md:hidden text-3xl p-2 z-50">☰</button>
+                </div>
+                <div class="hidden md:flex gap-4">
+                    <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 border-2 border-black dark:border-white bg-white dark:bg-black hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                        <span class="dark:hidden">☀</span><span class="hidden dark:inline">☾</span>
+                    </button>
+                    <a href="../index.html" class="group flex items-center gap-2 text-sm font-bold border-2 border-black dark:border-white px-4 py-2 bg-white dark:bg-black text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all shadow-hard hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+                        [ RETURN HOME ]
+                    </a>
+                </div>
+            </nav>
+            `;
+            document.getElementById('nav-container').innerHTML = navHTML;
+        }
+        
+        function renderMobileMenu() {
+            const menuHTML = `
+            <div id="mobile-menu" 
+                class="hidden-menu fixed inset-0 z-[100] h-[100dvh] w-screen bg-white/95 dark:bg-black/95 backdrop-blur-xl flex flex-col justify-center items-center touch-none transition-all duration-300">
+                
+                <button onclick="toggleMenu()" class="absolute top-6 right-6 p-4 group z-[101]">
+                    <svg class="w-8 h-8 text-black dark:text-white group-hover:text-theme-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <div class="flex flex-col items-center gap-8 w-full max-w-md p-6">
+                    <div class="w-px h-12 bg-gradient-to-b from-transparent via-theme-500 to-transparent"></div>
+                    
+                    <a href="../index.html" class="text-3xl md:text-4xl font-black uppercase hover:text-theme-500 transition-colors tracking-tighter dark:text-white text-black text-center leading-tight">
+                        [ RETURN HOME ]
+                    </a>
+                    
+                    <button onclick="document.documentElement.classList.toggle('dark')" class="group flex items-center gap-3 px-6 py-3 border-2 border-black dark:border-gray-700 hover:bg-black hover:text-white dark:hover:bg-theme-500 dark:hover:text-white dark:hover:border-theme-500 transition-all w-full max-w-[240px] justify-center">
+                        <span class="font-mono font-bold tracking-widest text-xs md:text-sm">SWITCH THEME</span>
+                    </button>
+                    
+                    <div class="w-px h-12 bg-gradient-to-b from-transparent via-theme-500 to-transparent"></div>
+                </div>
+            </div>
+            `;
+            document.getElementById('menu-container').innerHTML = menuHTML;
+        }
+
+        function renderToolkit() {
+            const toolsHTML = pageConfig.tools.map(tool => `
+                <div class="bg-gray-50 dark:bg-[#111] border border-black dark:border-gray-700 p-4 text-center hover:bg-theme-500 hover:text-white dark:hover:border-theme-500 transition-colors group cursor-default flex-auto" style="flex: 1 1 160px; max-width: 400px;">
+                    <strong class="block font-bold text-lg mb-1 dark:text-white group-hover:text-white">${tool.name}</strong>
+                    <span class="text-xs font-mono text-gray-500 dark:text-gray-500 group-hover:text-white/80">${tool.desc}</span>
+                </div>
+            `).join('');
+            document.getElementById('toolkit-container').innerHTML = toolsHTML;
+        }
+
         function toggleMenu() {
             const menu = document.getElementById('mobile-menu');
+            const body = document.body;
+
             if (menu.classList.contains('hidden-menu')) {
+                // === 打开菜单 ===
                 menu.classList.remove('hidden-menu');
                 menu.classList.add('visible-menu');
+                
+                // 1. 锁定 Body 滚动，防止背景滑动
+                body.style.overflow = 'hidden';
+                // 2. 也是为了防止 iOS 橡皮筋效果
+                body.style.height = '100dvh'; 
             } else {
+                // === 关闭菜单 ===
                 menu.classList.add('hidden-menu');
                 menu.classList.remove('visible-menu');
+                
+                // 1. 恢复 Body 滚动
+                body.style.overflow = '';
+                // 2. 恢复高度
+                body.style.height = ''; 
             }
         }
+
+        renderNav();
+        renderMobileMenu();
+        renderToolkit();
     </script>
 </body>
 </html>

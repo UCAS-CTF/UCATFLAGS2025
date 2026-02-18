@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Challenges | UCATFLAGS 2025+</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // 青色系 (Cyan)
+                        cyan: {
+                            400: '#22d3ee', // Bright Cyan
+                            500: '#06b6d4', // Primary Cyan
+                            600: '#0891b2', // Deep Cyan
+                            900: '#164e63', // Darkest Cyan
+                        },
+                        dark: {
+                            bg: '#020202', surface: '#0a0a0a', border: '#262626'
+                        }
+                    },
+                    fontFamily: {
+                        'mono': ['"JetBrains Mono"', 'monospace'],
+                        'sans': ['"Space Grotesk"', 'sans-serif'],
+                        'serif': ['"Playfair Display"', 'serif'],
+                    },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'glow': '0 0 15px rgba(6, 182, 212, 0.3)', // 青色光晕
+                    },
+                    animation: { 'fade-in': 'fadeIn 0.5s ease-out forwards' },
+                    keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { --cursor-size: 20px; }
+        body, html { margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        .dark ::-webkit-scrollbar-track { background: #020202; }
+        .dark ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
+        
+        /* 核心：菜单打开时的防滚动锁 */
+        body.menu-open { overflow: hidden !important; height: 100vh; height: 100dvh; padding-right: 0; touch-action: none; }
+
+        /* 背景纹理 */
+        .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+        
+        /* 卡片样式 */
+        .challenge-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .challenge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        .dark .challenge-card:hover {
+            border-color: #06b6d4; /* Cyan-500 */
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
+
+        /* 移动端全屏菜单 */
+        #mobile-menu {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 100;
+            overflow-y: auto; overscroll-behavior: contain; touch-action: auto;
+            transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; backdrop-filter: blur(0px); }
+        .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; backdrop-filter: blur(16px); }
+        
+        /* 汉堡按钮动画 */
+        .icon-line { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+        body.menu-open #mobile-menu-btn .line-1 { transform: translateY(6px) rotate(45deg); }
+        body.menu-open #mobile-menu-btn .line-2 { opacity: 0; transform: translateX(-10px); }
+        body.menu-open #mobile-menu-btn .line-3 { transform: translateY(-6px) rotate(-45deg); }
+
+        /* 输入框聚焦动画 */
+        .input-group:focus-within .input-border { width: 100%; }
+        .input-border { transition: width 0.3s ease; width: 0%; }
+        
+        /* Solved Badge */
+        .solved-badge {
+            background: repeating-linear-gradient(45deg, #06b6d4, #06b6d4 10px, #0891b2 10px, #0891b2 20px);
+            color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-gray-300 transition-colors duration-500 min-h-screen flex flex-col">
+
+    <div class="noise-overlay"></div>
+
+    <!-- 导航栏 -->
+    <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-6 backdrop-blur-md border-b transition-colors duration-500 dark:bg-black/80 dark:border-cyan-500/20 bg-white/90 border-black">
+        <a href="../index.html" class="text-xl font-bold tracking-tighter cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors dark:text-cyan-500 text-black flex items-center gap-2 relative z-50">
+            <i class="fa-solid fa-flag"></i> UCATFLAGS_
+        </a>
+        
+        <!-- Desktop Menu -->
+        <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-widest font-bold">
+            <a href="../index.html" class="hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors">Home</a>
+            <button onclick="filterChallenges('all')" class="hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors">All</button>
+            <button onclick="filterChallenges('ppc')" class="hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors">PPC</button>
+            <button onclick="toggleTheme()" class="p-2 rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10">
+                <i class="fa-solid fa-moon dark:hidden"></i>
+                <i class="fa-solid fa-sun hidden dark:block text-cyan-500"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden z-[101] relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none">
+            <span class="icon-line line-1 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
+            <span class="icon-line line-2 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
+            <span class="icon-line line-3 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
+        </button>
+    </nav>
+
+    <!-- Fullscreen Mobile Menu (Optimized) -->
+    <div id="mobile-menu" class="hidden-menu bg-white/95 dark:bg-black/95 flex flex-col justify-center items-center text-center p-6">
+        <div class="min-h-full w-full flex flex-col justify-center items-center py-10 px-6">
+            <div class="flex flex-col items-center gap-8 w-full max-w-sm animate-[fadeIn_0.4s_ease-out]">
+                <div class="w-px h-16 bg-gradient-to-b from-transparent via-cyan-500 to-transparent opacity-50"></div>
+                <div class="flex flex-col space-y-6 text-center text-2xl font-serif font-bold">
+                    <a href="../index.html" class="mobile-link hover:text-cyan-500">HOME</a>
+                    <button onclick="filterChallenges('all'); toggleMenu()" class="mobile-link hover:text-cyan-500">ALL CHALLENGES</button>
+                    <button onclick="filterChallenges('ppc'); toggleMenu()" class="mobile-link hover:text-cyan-500">PPC TRACK</button>
+                </div>
+                <button onclick="toggleTheme()" class="mobile-link border border-current px-8 py-3 w-full font-mono text-sm font-bold mt-4">SWITCH THEME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto w-full relative z-10">
+        
+        <header class="mb-12">
+            <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4 dark:text-white text-black">
+                WarmUp <span class="text-cyan-500">Arena</span>
+            </h1>
+            <p class="font-mono text-sm dark:text-gray-400 text-gray-600 max-w-2xl">
+                // SYSTEM_STATUS: ONLINE<br>
+                // FLAG_FORMAT: ucatflags{...}<br>
+                // MD5_VERIFICATION: ENABLED
+            </p>
+            
+            <!-- Category Filter -->
+            <div class="flex flex-wrap gap-2 mt-8 font-mono text-xs font-bold">
+                <button onclick="filterChallenges('all')" class="filter-btn active px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="all">ALL</button>
+                <button onclick="filterChallenges('ppc')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="ppc">PPC</button>
+                <button onclick="filterChallenges('crypto')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="crypto">CRYPTO</button>
+                <button onclick="filterChallenges('re')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="re">REVERSE</button>
+                <button onclick="filterChallenges('pwn')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="pwn">PWN</button>
+                <button onclick="filterChallenges('misc')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="misc">MISC</button>
+            </div>
+        </header>
+
+        <!-- Challenge Grid -->
+        <div id="challenge-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Challenges will be injected here via JS -->
+        </div>
+
+    </main>
+
+    <footer class="border-t py-8 text-center font-mono text-xs dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600 border-black bg-white text-gray-500">
+        <p>UCATFLAGS 2025+ // PRACTICE ENVIRONMENT</p>
+    </footer>
+
+    <!-- Logic -->
+    <script>
+        // --- 1. 题目数据 (完整配置) ---
+        // 注意：flagHash 存储的是 ucatflags{...} 的 MD5 值
+        // 附件路径: attachment/xxx/
+        // Writeup路径: writeup/xxx-wp.md
+        const challenges = [
+            // === PPC Track ===
+            {
+                id: 'ppc0',
+                category: 'ppc',
+                title: 'PPC0: A+B Problem',
+                points: 10,
+                difficulty: 'Easy',
+                desc: '编程入门：计算 A + B。请下载附件查看输入输出格式。',
+                files: [
+                    { name: 'add.c', path: 'attachment/ppc0/add.c' },
+                    { name: 'data.in', path: 'attachment/ppc0/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc0/example.txt' }
+                ],
+                wp: 'writeup/ppc0-wp.md',
+                flagHash: "968132163c598d7e08dd1b9e00c1bd6a"
+            },
+            {
+                id: 'ppc1',
+                category: 'ppc',
+                title: 'PPC1: Help Me',
+                points: 50,
+                difficulty: 'Easy',
+                desc: '请帮帮我，我的代码跑不起来了。考察 C 语言基本语法。',
+                files: [{ name: 'helpme.c', path: 'attachment/ppc1/helpme.c' }],
+                wp: 'writeup/ppc1-wp.md',
+                flagHash: "ee7c285aceb9fe42d15b46f9ecb99397"
+            },
+            {
+                id: 'ppc2',
+                category: 'ppc',
+                title: 'PPC2: 真真假假',
+                points: 50,
+                difficulty: 'Easy',
+                desc: '给我正确的密码，我会给你 flag。考察 if-else 逻辑。',
+                files: [
+                    { name: 'if.c', path: 'attachment/ppc2/if.c' },
+                    { name: 'if.exe', path: 'attachment/ppc2/if.exe' }
+                ],
+                // No writeup explicitly listed in tree for ppc2
+                flagHash: "e79ae51d5c81785f9efc866bd432c9d9"
+            },
+            {
+                id: 'ppc3',
+                category: 'ppc',
+                title: 'PPC3: 数星星',
+                points: 50,
+                difficulty: 'Easy',
+                desc: '数出闭区间内有多少“*”字符。考察循环结构。',
+                files: [
+                    { name: 'stars.c', path: 'attachment/ppc3/stars.c' },
+                    { name: 'data.in', path: 'attachment/ppc3/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc3/example.txt' }
+                ],
+                wp: 'writeup/ppc3-wp.md',
+                flagHash: "f91bb7c0df3d2d3aeb6be53709b4a83c"
+            },
+            {
+                id: 'ppc4',
+                category: 'ppc',
+                title: 'PPC4: 游走',
+                points: 50,
+                difficulty: 'Easy',
+                desc: '将每次落脚处的字符拼成 flag（不要记录起点处的字符）。',
+                files: [
+                    { name: 'walk.c', path: 'attachment/ppc4/walk.c' },
+                    { name: 'data.in', path: 'attachment/ppc4/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc4/example.txt' }
+                ],
+                wp: 'writeup/ppc4-wp.md',
+                flagHash: "81c3f81004f613fb58a30dc81ba59f4e"
+            },
+            {
+                id: 'ppc5',
+                category: 'ppc',
+                title: 'PPC5: 成绩单',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '结构体排序问题。请根据规则对成绩单进行处理。',
+                files: [
+                    { name: 'score.c', path: 'attachment/ppc5/score.c' },
+                    { name: 'data.in', path: 'attachment/ppc5/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc5/example.txt' }
+                ],
+                wp: 'writeup/ppc5-wp.md',
+                flagHash: "e1925f49a89fba27a8ada420ef215615"
+            },
+            {
+                id: 'ppc6',
+                category: 'ppc',
+                title: 'PPC6: 指针',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '考察指针操作与内存地址理解。',
+                files: [
+                    { name: 'pointer.c', path: 'attachment/ppc6/pointer.c' },
+                    { name: 'data.in', path: 'attachment/ppc6/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc6/example.txt' }
+                ],
+                flagHash: "88cf405d85542e0cf109a808340f0c9e"
+            },
+            {
+                id: 'ppc7',
+                category: 'ppc',
+                title: 'PPC7: 点名',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '函数调用与模拟。',
+                files: [{ name: 'calling.c', path: 'attachment/ppc7/calling.c' }],
+                flagHash: "eececbd0b5780bbe989fca25369d1a9b"
+            },
+            {
+                id: 'ppc8',
+                category: 'ppc',
+                title: 'PPC8: 括号匹配',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '经典的栈应用：判断字符串中的括号是否合法匹配。',
+                files: [
+                    { name: 'bracket.c', path: 'attachment/ppc8/bracket.c' },
+                    { name: 'data.in', path: 'attachment/ppc8/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc8/example.txt' }
+                ],
+                flagHash: "7ed2a0dc4459c7c527670bf99ecbb60d"
+            },
+            {
+                id: 'ppc9',
+                category: 'ppc',
+                title: 'PPC9: 队列',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '数据结构基础：队列的操作模拟。',
+                files: [
+                    { name: 'queue.c', path: 'attachment/ppc9/queue.c' },
+                    { name: 'data.in', path: 'attachment/ppc9/data.in' },
+                    { name: 'example.txt', path: 'attachment/ppc9/example.txt' }
+                ],
+                flagHash: "7f79cf4ef28d9ba6696d3368ded1b9e2"
+            },
+            {
+                id: 'ppc10',
+                category: 'ppc',
+                title: 'PPC10: 二叉树',
+                points: 50,
+                difficulty: 'Hard',
+                desc: '二叉树遍历与还原。',
+                files: [{ name: 'tree.png', path: 'attachment/ppc10/tree.png' }],
+                flagHash: "70587edfc35af3c2758d4e0b4fd2c93c"
+            },
+            // === Other Tracks ===
+            {
+                id: 'crypto0',
+                category: 'crypto',
+                title: 'Crypto0: WarmUp',
+                points: 10,
+                difficulty: 'Easy',
+                desc: '简单的加密解密热身。',
+                files: [
+                    { name: 'WarmUp.py', path: 'attachment/crypto0/WarmUp.py' },
+                    { name: 'output.txt', path: 'attachment/crypto0/output.txt' }
+                ],
+                wp: 'writeup/crypto0-wp.md',
+                flagHash: "644fb25498d8a7b62497946ad3de78b3"
+            },
+            {
+                id: 'misc0',
+                category: 'misc',
+                title: 'Misc0: Check-in',
+                points: 5,
+                difficulty: 'Easy',
+                desc: 'Misc 签到题。',
+                files: [], // No files in misc0 folder based on tree
+                wp: 'writeup/misc0-wp.md',
+                flagHash: "ea86bce16f51b1e05d2178b8da7ba3b5"
+            },
+            {
+                id: 'pwn0',
+                category: 'pwn',
+                title: 'Pwn0: Overflow',
+                points: 50,
+                difficulty: 'Medium',
+                desc: '栈溢出基础。覆盖返回地址。',
+                files: [{ name: 'overflow3211', path: 'attachment/pwn0/overflow3211' }],
+                wp: 'writeup/pwn0-wp.md',
+                // flagHash: REMOVED as it is dynamic
+                isDynamic: true
+            },
+            {
+                id: 're0',
+                category: 're',
+                title: 'Re0: Warmup',
+                points: 20,
+                difficulty: 'Easy',
+                desc: '逆向工程入门。',
+                files: [{ name: 'warmup', path: 'attachment/re0/warmup' }],
+                wp: 'writeup/re0-wp.md',
+                flagHash: "0b656bfd1920926caa6b94310709a8b4"
+            }
+        ];
+
+        // --- 2. 渲染逻辑 ---
+        const grid = document.getElementById('challenge-grid');
+        
+        function renderChallenges(filter = 'all') {
+            grid.innerHTML = '';
+            const solvedList = JSON.parse(localStorage.getItem('ucat_solved_ids') || '[]');
+
+            const filtered = filter === 'all' 
+                ? challenges 
+                : challenges.filter(c => c.category === filter);
+
+            filtered.forEach(c => {
+                const isSolved = solvedList.includes(c.id);
+                const statusBadge = isSolved 
+                    ? `<span class="solved-badge px-2 py-1 text-xs font-mono uppercase transform rotate-2">SOLVED</span>`
+                    : `<span class="bg-gray-200 dark:bg-gray-800 text-gray-500 px-2 py-1 text-xs font-mono uppercase">UNSOLVED</span>`;
+                
+                const cardColor = isSolved ? 'border-cyan-500/50' : 'border-black/10 dark:border-gray-700';
+                
+                // 附件 HTML
+                let filesHtml = '';
+                if (c.files && c.files.length > 0) {
+                    filesHtml = `<div class="mt-4 pt-4 border-t border-dashed border-gray-300 dark:border-gray-800">
+                        <p class="text-xs font-bold mb-2 text-gray-500">ATTACHMENTS:</p>
+                        <div class="flex flex-wrap gap-2">
+                            ${c.files.map(f => `
+                                <a href="${f.path}" download class="flex items-center gap-1 text-xs bg-gray-100 dark:bg-gray-900 hover:bg-cyan-500 hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black px-2 py-1 rounded transition-colors font-mono border dark:border-gray-700">
+                                    <i class="fa-regular fa-file"></i> ${f.name}
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>`;
+                }
+
+                // Writeup 按钮 HTML (如果有 Writeup)
+                let wpHtml = '';
+                if (c.wp) {
+                    wpHtml = `<a href="${c.wp}" target="_blank" class="ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 text-gray-500 hover:text-cyan-500 hover:border-cyan-500 transition-colors rounded font-mono" title="View Writeup"><i class="fa-solid fa-book-open"></i> WP</a>`;
+                }
+
+                // 核心输入区域逻辑
+                let inputHtml = '';
+                if (c.isDynamic) {
+                    // 动态 Flag 显示提示，不显示输入框
+                    inputHtml = `
+                    <div class="mt-6 text-center py-2 bg-gray-100 dark:bg-gray-900 rounded border border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center gap-1">
+                        <span class="text-xs font-mono text-gray-500 dark:text-gray-400 font-bold"><i class="fa-solid fa-server"></i> Dynamic Flag</span>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-600">Verification in instance</span>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                         ${wpHtml}
+                    </div>
+                    `;
+                } else {
+                    // 静态 Flag 显示输入框
+                    inputHtml = `
+                    <div class="mt-6 relative input-group">
+                        <div class="flex gap-2">
+                            <input type="text" id="input-${c.id}" placeholder="ucatflags{...}" 
+                                class="w-full bg-gray-50 dark:bg-black border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm font-mono focus:outline-none dark:text-white"
+                                ${isSolved ? 'disabled value="Flag Captured!"' : ''}
+                            >
+                            <button onclick="checkFlag('${c.id}')" 
+                                class="px-4 py-2 bg-black dark:bg-cyan-600 text-white font-bold text-xs hover:bg-cyan-500 dark:hover:bg-cyan-500 dark:hover:text-black transition-colors"
+                                ${isSolved ? 'disabled' : ''}
+                            >
+                                <i class="fa-solid fa-angle-right"></i>
+                            </button>
+                        </div>
+                        <div class="input-border absolute bottom-0 left-0 h-[2px] bg-cyan-500"></div>
+                        <div class="flex justify-between items-start mt-2">
+                            <p id="msg-${c.id}" class="text-xs font-mono h-4"></p>
+                            ${wpHtml}
+                        </div>
+                    </div>
+                    `;
+                }
+
+                const html = `
+                <div class="challenge-card relative bg-white dark:bg-[#0a0a0a] border ${cardColor} p-6 rounded-sm shadow-sm hover:shadow-glow group flex flex-col h-full animate-fade-in">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex flex-col">
+                            <span class="font-mono text-xs text-cyan-600 dark:text-cyan-500 font-bold tracking-widest mb-1">${c.category.toUpperCase()} // ${c.id}</span>
+                            <h3 class="text-xl font-bold font-serif dark:text-white text-black group-hover:text-cyan-600 dark:group-hover:text-cyan-500 transition-colors">${c.title}</h3>
+                        </div>
+                        <div class="flex flex-col items-end gap-2">
+                            <span class="font-mono text-lg font-bold dark:text-white">${c.points}pts</span>
+                            ${statusBadge}
+                        </div>
+                    </div>
+                    
+                    <p class="text-sm text-gray-600 dark:text-gray-400 font-mono mb-4 flex-grow">${c.desc}</p>
+                    
+                    ${filesHtml}
+
+                    ${inputHtml}
+                </div>
+                `;
+                grid.innerHTML += html;
+            });
+        }
+
+        // --- 3. 校验逻辑 (MD5) ---
+        function checkFlag(id) {
+            const inputEl = document.getElementById(`input-${id}`);
+            const msgEl = document.getElementById(`msg-${id}`);
+            const userFlag = inputEl.value.trim();
+            
+            if (!userFlag) {
+                msgEl.innerText = "! INPUT EMPTY";
+                msgEl.className = "text-xs font-mono h-4 text-red-500";
+                return;
+            }
+
+            // 计算输入值的 MD5
+            const userHash = CryptoJS.MD5(userFlag).toString();
+            const challenge = challenges.find(c => c.id === id);
+
+            if (userHash === challenge.flagHash) {
+                msgEl.innerText = ">> ACCESS GRANTED // + " + challenge.points;
+                msgEl.className = "text-xs font-mono h-4 text-cyan-500 font-bold";
+                
+                // 保存状态
+                const solvedList = JSON.parse(localStorage.getItem('ucat_solved_ids') || '[]');
+                if (!solvedList.includes(id)) {
+                    solvedList.push(id);
+                    localStorage.setItem('ucat_solved_ids', JSON.stringify(solvedList));
+                    setTimeout(() => renderChallenges(activeCategory), 1000); // 1秒后刷新 UI
+                }
+            } else {
+                msgEl.innerText = ">> ACCESS DENIED";
+                msgEl.className = "text-xs font-mono h-4 text-red-500 font-bold";
+                inputEl.classList.add('animate-pulse');
+                setTimeout(() => inputEl.classList.remove('animate-pulse'), 500);
+            }
+        }
+
+        // --- 4. 筛选逻辑 ---
+        let activeCategory = 'all';
+        function filterChallenges(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.category === cat) {
+                    btn.classList.add('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black');
+                } else {
+                    btn.classList.remove('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black');
+                }
+            });
+            renderChallenges(cat);
+        }
+
+        // --- 5. 菜单与主题逻辑 ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const body = document.body;
+
+        function toggleMenu() {
+            const isActive = mobileMenu.classList.contains('visible-menu');
+            if (isActive) {
+                mobileMenu.classList.remove('visible-menu');
+                mobileMenu.classList.add('hidden-menu');
+                body.classList.remove('menu-open');
+            } else {
+                mobileMenu.classList.remove('hidden-menu');
+                mobileMenu.classList.add('visible-menu');
+                body.classList.add('menu-open');
+            }
+        }
+
+        mobileMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+        
+        // 点击背景关闭菜单
+        mobileMenu.addEventListener('click', (e) => {
+             if (e.target === mobileMenu || e.target.classList.contains('min-h-full')) toggleMenu(); 
+        });
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // 初始化
+        renderChallenges();
+
+    </script>
+</body>
+</html>

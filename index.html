@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,8 +36,8 @@
                         'serif': ['"Playfair Display"', 'serif'],
                     },
                     boxShadow: {
-                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)', // 亮色模式硬阴影
-                        'hard-gold': '4px 4px 0px 0px rgba(212, 175, 55, 0.3)', // 暗色模式硬阴影
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'hard-gold': '4px 4px 0px 0px rgba(212, 175, 55, 0.3)',
                     },
                     animation: { 'page-enter': 'fadeIn 0.5s ease-out forwards' },
                     keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
@@ -49,230 +49,188 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --cursor-size: 20px;
+        /* --- 核心基础设置 --- */
+        :root { --cursor-size: 20px; }
+        
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow-x: hidden; /* 防止水平溢出 */
+            scroll-behavior: smooth; 
+            transition: background-color 0.5s ease, color 0.5s ease; 
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Space Grotesk', sans-serif;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            transition: background-color 0.5s ease, color 0.5s ease;
+        /* 核心：菜单打开时的防滚动锁 */
+        body.menu-open {
+            overflow: hidden !important; /* 强制禁止滚动 */
+            height: 100vh; 
+            height: 100dvh; /* 适配移动端动态高度 */
+            padding-right: 0;
+            touch-action: none; /* 禁止触摸滚动 */
         }
 
-        /* 亮色模式网格背景 */
-        body:not(.dark) {
-            background-image: 
-                linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
+        body:not(.dark) { 
+            background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px); 
+            background-size: 40px 40px; 
         }
 
-        /* 滚动条适配 */
+        /* --- 滚动条样式 --- */
         ::-webkit-scrollbar { width: 6px; }
         .dark ::-webkit-scrollbar-track { background: #020202; }
         .dark ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
         ::-webkit-scrollbar-track { background: #fff; }
         ::-webkit-scrollbar-thumb { background: #ccc; border: 1px solid #eee; }
 
-        /* 字体类 */
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-
-        /* 噪点叠加层 */
-        .noise-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 999; opacity: 0.04;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        
+        /* --- 背景与特效 --- */
+        .noise-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; z-index: 999; opacity: 0.04; 
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); 
         }
-
-        /* Three.js Canvas (全局背景) */
-        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.8; transition: opacity 0.5s; }
-
-        /* Fabric Canvas (Hero 标题) */
-        #fabric-canvas { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            z-index: 10; 
-            cursor: pointer;
-            transition: filter 0.5s;
+        #bg-canvas { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: -2; opacity: 0.8; transition: opacity 0.5s; 
         }
         
-        .dark #fabric-canvas { filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.4)); }
-        html:not(.dark) #fabric-canvas { filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.2)); }
-
-        /* --- 交互式光标 --- */
-        #cursor {
-            position: fixed; top: 0; left: 0;
-            width: var(--cursor-size); height: var(--cursor-size);
-            border-radius: 50%;
-            pointer-events: none; z-index: 9999;
-            transform: translate(-50%, -50%);
-            mix-blend-mode: normal;
-            transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
+        /* --- 自定义光标 --- */
+        #cursor { 
+            position: fixed; top: 0; left: 0; 
+            width: var(--cursor-size); height: var(--cursor-size); 
+            border-radius: 50%; pointer-events: none; z-index: 9999; 
+            transition: border-color 0.2s, background-color 0.2s, width 0.2s, height 0.2s;
+            transform: translate3d(-100px, -100px, 0) translate(-50%, -50%);
+            will-change: transform;
         }
         
-        /* Dark Mode Cursor */
-        .dark #cursor { border: 1px solid rgba(212, 175, 55, 0.6); box-shadow: 0 0 0px rgba(212, 175, 55, 0); }
-        .dark #cursor.hovered { background-color: rgba(212, 175, 55, 0.15); border-color: #D4AF37; transform: translate(-50%, -50%) scale(1.1); box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+        .dark #cursor { border: 1px solid rgba(212, 175, 55, 0.8); box-shadow: 0 0 4px rgba(212, 175, 55, 0.2); }
+        .dark #cursor.hovered { background-color: rgba(212, 175, 55, 0.15); border-color: #D4AF37; box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); width: 50px; height: 50px; }
 
-        /* Light Mode Cursor */
         html:not(.dark) #cursor { border: 1px solid rgba(0, 0, 0, 0.8); }
-        html:not(.dark) #cursor.hovered { background-color: rgba(0, 0, 0, 0.1); border-color: #000; transform: translate(-50%, -50%) scale(1.1); }
+        html:not(.dark) #cursor.hovered { background-color: rgba(0, 0, 0, 0.1); border-color: #000; width: 50px; height: 50px; }
 
-        /* 基础悬停错位 - 适配 */
+        /* --- 文字故障效果 (Glitch) --- */
         .glitch-hover { position: relative; transition: all 0.2s; }
         .dark .glitch-hover:hover { color: #D4AF37; text-shadow: 2px 0 #fff, -2px 0 #b4942a; }
         html:not(.dark) .glitch-hover:hover { color: #000; text-shadow: 2px 0 #D4AF37, -2px 0 #666; }
 
-        /* --- 风格化卡片 (Hard Shadow style) --- */
-        .card-inner {
-            position: relative;
-            height: 100%;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            backdrop-filter: blur(12px);
-            overflow: hidden;
-        }
-        /* Dark Card */
-        .dark .card-inner {
-            background: rgba(10, 10, 10, 0.6);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-        }
-        .dark .card-inner:hover {
-            border-color: #D4AF37;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-            transform: translateY(-4px);
-        }
-        /* Light Card (Brutalist Style) */
-        html:not(.dark) .card-inner {
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #000;
-            box-shadow: 4px 4px 0px 0px #000; /* Hard Shadow */
-        }
-        html:not(.dark) .card-inner:hover {
-            transform: translate(2px, 2px); /* Click effect */
-            box-shadow: 2px 2px 0px 0px #000;
-        }
-
-        .card-content { position: relative; z-index: 2; }
+        .glitch-wrapper { position: relative; display: inline-block; font-weight: 900; line-height: 1; user-select: none; }
+        .glitch-title { position: relative; z-index: 1; }
+        .glitch-title::before, .glitch-title::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; opacity: 0.8; }
         
-        /* Glare */
-        .card-glare {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: screen; z-index: 1;
-        }
+        html:not(.dark) .glitch-title::before { text-shadow: -2px 0 #ff00c1; clip-path: inset(0 0 0 0); animation: glitch-anim-2 3s infinite linear alternate-reverse; }
+        html:not(.dark) .glitch-title::after { text-shadow: -2px 0 #00fff9; clip-path: inset(0 0 0 0); animation: glitch-anim-1 2.5s infinite linear alternate-reverse; }
+        .dark .glitch-title::before { text-shadow: 2px 0 #D4AF37; clip-path: inset(0 0 0 0); animation: glitch-anim-gold-1 4s infinite linear alternate-reverse; }
+        .dark .glitch-title::after { text-shadow: -2px 0 #fff; clip-path: inset(0 0 0 0); animation: glitch-anim-gold-2 3s infinite linear alternate-reverse; }
+        
+        .glitch-title::before, .glitch-title::after { opacity: 0; transition: opacity 0.1s; }
+        @media (hover: hover) { .glitch-wrapper:hover .glitch-title::before, .glitch-wrapper:hover .glitch-title::after { opacity: 1; } }
+        @media (hover: none) { .glitch-title::before, .glitch-title::after { animation-duration: 5s; opacity: 0.6; animation-play-state: running; } }
+
+        @keyframes glitch-anim-1 { 0% { clip-path: inset(20% 0 80% 0); transform: translate(-2px, 1px); } 20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -1px); } 40% { clip-path: inset(40% 0 50% 0); transform: translate(-2px, 2px); } 60% { clip-path: inset(80% 0 5% 0); transform: translate(2px, -2px); } 80% { clip-path: inset(10% 0 70% 0); transform: translate(-1px, 1px); } 100% { clip-path: inset(30% 0 20% 0); transform: translate(1px, -1px); } }
+        @keyframes glitch-anim-2 { 0% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -1px); } 20% { clip-path: inset(80% 0 5% 0); transform: translate(-2px, 2px); } 40% { clip-path: inset(30% 0 20% 0); transform: translate(2px, 1px); } 60% { clip-path: inset(10% 0 80% 0); transform: translate(-1px, -2px); } 80% { clip-path: inset(50% 0 30% 0); transform: translate(1px, 2px); } 100% { clip-path: inset(20% 0 70% 0); transform: translate(-2px, 1px); } }
+        @keyframes glitch-anim-gold-1 { 0% { clip-path: inset(50% 0 30% 0); transform: translate(2px, 0); } 100% { clip-path: inset(10% 0 60% 0); transform: translate(-2px, 0); } }
+        @keyframes glitch-anim-gold-2 { 0% { clip-path: inset(10% 0 50% 0); transform: translate(-2px, 0); } 100% { clip-path: inset(80% 0 5% 0); transform: translate(2px, 0); } }
+
+        /* --- 卡片样式 (Cards) --- */
+        .card-inner { position: relative; height: 100%; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); backdrop-filter: blur(12px); overflow: hidden; }
+        .dark .card-inner { background: rgba(10, 10, 10, 0.6); border: 1px solid rgba(212, 175, 55, 0.3); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+        .dark .card-inner:hover { border-color: #D4AF37; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); transform: translateY(-4px); }
+        html:not(.dark) .card-inner { background: rgba(255, 255, 255, 0.9); border: 2px solid #000; box-shadow: 4px 4px 0px 0px #000; }
+        html:not(.dark) .card-inner:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px #000; }
+        
+        .card-content { position: relative; z-index: 2; }
+        .card-glare { position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: screen; z-index: 1; }
         .dark .card-glare { background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(255, 215, 0, 0.15) 0%, transparent 60%); }
         html:not(.dark) .card-glare { background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), rgba(0, 0, 0, 0.05) 0%, transparent 60%); mix-blend-mode: multiply; }
         .card-container:hover .card-glare { opacity: 1; }
 
-        /* Skill Tag */
-        .skill-tag {
-            display: inline-block; font-size: 0.75rem; padding: 2px 8px;
-            margin-right: 4px; margin-bottom: 4px;
-            transition: all 0.2s; font-family: 'JetBrains Mono', monospace;
-            font-weight: bold;
-        }
+        .skill-tag { display: inline-block; font-size: 0.75rem; padding: 2px 8px; margin-right: 4px; margin-bottom: 4px; transition: all 0.2s; font-family: 'JetBrains Mono', monospace; font-weight: bold; }
         .dark .skill-tag { border: 1px solid rgba(100, 100, 100, 0.3); color: #888; }
         .dark .card-container:hover .skill-tag { border-color: #D4AF37; color: #000; background: #D4AF37; }
-        
         html:not(.dark) .skill-tag { border: 1px solid #000; color: #000; background: transparent; }
         html:not(.dark) .card-container:hover .skill-tag { background: #000; color: #fff; }
 
-        /* --- 倒计时 --- */
-        .countdown-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 1rem; min-width: 80px; backdrop-filter: blur(4px);
-        }
+        /* --- 其他组件样式 --- */
+        .countdown-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; min-width: 80px; backdrop-filter: blur(4px); }
         .dark .countdown-item { border: 1px solid rgba(212, 175, 55, 0.2); background: rgba(5, 5, 5, 0.8); }
         html:not(.dark) .countdown-item { border: 2px solid #000; background: rgba(255, 255, 255, 0.9); box-shadow: 4px 4px 0px 0px #000; }
-
-        /* Timeline */
+        
         .timeline-item .timeline-dot { transition: all 0.3s; }
         .dark .timeline-active .timeline-dot { background-color: #D4AF37 !important; box-shadow: 0 0 15px #D4AF37; }
         html:not(.dark) .timeline-active .timeline-dot { background-color: #000 !important; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000; }
-        
         .timeline-item h3 { transition: color 0.3s; }
         .dark .timeline-active h3 { color: #D4AF37; }
         html:not(.dark) .timeline-active h3 { color: #000; text-decoration: underline; text-decoration-thickness: 2px; text-decoration-color: #D4AF37; }
-
-        /* Badges */
+        
         .badge-live { padding: 2px 6px; font-size: 0.6rem; font-weight: bold; margin-left: 8px; border-radius: 0px; letter-spacing: 1px;}
         .dark .badge-live { background: #D4AF37; color: #000; }
         html:not(.dark) .badge-live { background: #000; color: #fff; border: 1px solid #000; }
-
         .badge-done { padding: 2px 6px; font-size: 0.6rem; margin-left: 8px; border-radius: 0px;}
         .dark .badge-done { background: #222; color: #666; border: 1px solid #444; }
         html:not(.dark) .badge-done { background: #eee; color: #999; border: 1px solid #999; }
         
         section { padding: 8rem 1rem; max-width: 1400px; margin: 0 auto; }
-        
-        /* --- 移动端菜单修复样式 START --- */
+
+        /* =========================================
+           移动端全屏菜单 (Mobile Menu) - 核心修改
+           ========================================= */
         #mobile-menu {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100vh;
-            z-index: 45; /* 位于 Navbar(50) 之下，内容之上 */
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
+            width: 100vw;
+            height: 100vh; /* 兼容旧浏览器 */
+            height: 100dvh; /* 核心：适配 Safari/Chrome 移动端动态工具栏高度 */
+            z-index: 100; /* 高层级，遮住导航栏 */
             
-            /* 状态控制 */
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
+            /* 允许内容过多时滚动，但不传递滚动给 body */
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            touch-action: auto;
             
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease;
         }
 
-        .dark #mobile-menu {
-            background: rgba(2, 2, 2, 0.95);
+        /* 菜单链接样式 */
+        .mobile-link {
+            position: relative;
+            display: inline-block;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        .mobile-link:active {
+            transform: scale(0.95);
         }
 
-        #mobile-menu.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
+        /* 状态切换 */
+        .hidden-menu { 
+            opacity: 0; 
+            visibility: hidden; 
+            pointer-events: none; 
+            backdrop-filter: blur(0px);
+        }
+        .visible-menu { 
+            opacity: 1; 
+            visibility: visible; 
+            pointer-events: auto; 
+            backdrop-filter: blur(16px); /* 开启时背景高斯模糊 */
         }
 
-        /* 菜单内容容器动画 */
-        .menu-content-wrapper {
-            transform: translateY(20px);
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            width: 100%;
-        }
-
-        #mobile-menu.active .menu-content-wrapper {
-            transform: translateY(0);
-        }
-
-        /* 汉堡按钮线条动画 */
-        .icon-line {
-            transition: all 0.3s ease;
-            transform-origin: center;
-        }
-
-        /* 汉堡变叉号逻辑 (通过 body class 控制) */
-        body.menu-open #mobile-menu-btn .line-1 {
-            transform: translateY(6px) rotate(45deg);
-        }
-        body.menu-open #mobile-menu-btn .line-2 {
-            opacity: 0;
-            transform: translateX(-10px);
-        }
-        body.menu-open #mobile-menu-btn .line-3 {
-            transform: translateY(-6px) rotate(-45deg);
-        }
-        /* --- 移动端菜单修复样式 END --- */
+        /* 汉堡按钮动画 - 依赖 body.menu-open */
+        .icon-line { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+        
+        body.menu-open #mobile-menu-btn .line-1 { transform: translateY(6px) rotate(45deg); }
+        body.menu-open #mobile-menu-btn .line-2 { opacity: 0; transform: translateX(-10px); }
+        body.menu-open #mobile-menu-btn .line-3 { transform: translateY(-6px) rotate(-45deg); }
+        
+        /* 简单的淡入动画 */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-gray-300 selection:bg-gold-500 selection:text-white transition-colors duration-500 animate-page-enter">
@@ -296,10 +254,10 @@
             <a href="notice/notice.html" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">公告</a>
             <a href="#about" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">介绍</a>
             <a href="#tracks" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">赛题</a>
+            <a href="challenges.html" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">赛题示例</a>
             <a href="#schedule" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">赛程</a>
             <a href="#details" class="hover-trigger transition-colors dark:hover:text-gold-500 hover:text-gold-600">评分</a>
             
-            <!-- 主题切换 -->
             <button onclick="toggleTheme()" class="hover-trigger p-2 rounded-full transition-colors dark:hover:bg-white/10 hover:bg-black/5">
                 <svg class="w-5 h-5 hidden dark:block text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                 <svg class="w-5 h-5 block dark:hidden text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
@@ -312,44 +270,47 @@
             </a>
         </div>
 
-        <!-- Mobile Hamburger (修复后的按钮结构，支持动画) -->
-        <button id="mobile-menu-btn" class="md:hidden z-50 relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none">
-            <span class="icon-line line-1 w-6 h-0.5 bg-black dark:bg-white block"></span>
-            <span class="icon-line line-2 w-6 h-0.5 bg-black dark:bg-white block"></span>
-            <span class="icon-line line-3 w-6 h-0.5 bg-black dark:bg-white block"></span>
+        <!-- Mobile Menu Button - Z-index set to 101 to ensure it's ABOVE the overlay -->
+        <button id="mobile-menu-btn" class="md:hidden z-[101] relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none cursor-pointer">
+            <span class="icon-line line-1 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
+            <span class="icon-line line-2 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
+            <span class="icon-line line-3 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
         </button>
     </nav>
 
-    <!-- Mobile Menu Overlay (修复后的全屏菜单) -->
-    <div id="mobile-menu" class="flex flex-col justify-center items-center text-center">
-        <!-- 装饰性背景网格 -->
-        <div class="absolute inset-0 opacity-10 pointer-events-none" 
-             style="background-image: linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px); background-size: 40px 40px;">
-        </div>
-        
-        <div class="menu-content-wrapper flex flex-col space-y-8 relative z-10 p-6 w-full max-w-sm mx-auto">
-            <div class="flex flex-col space-y-6 text-2xl font-bold tracking-widest uppercase dark:text-white text-black font-serif">
-                <a href="notice/notice.html" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">公告</a>
-                <a href="#about" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">介绍</a>
-                <a href="#tracks" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">赛题</a>
-                <a href="#schedule" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">赛程</a>
-                <a href="#details" class="mobile-link hover:text-gold-500 transition-colors py-2 border-b border-transparent hover:border-gold-500">评分</a>
-            </div>
-
-            <div class="h-px w-16 bg-gray-300 dark:bg-gray-700 mx-auto my-6"></div>
-
-            <div class="pt-2 flex flex-col gap-4">
-                <button onclick="toggleTheme()" class="border border-current px-6 py-3 hover:bg-black hover:text-white dark:hover:bg-gold-500 dark:hover:text-black transition-all flex items-center justify-center gap-3 w-full text-sm font-mono tracking-wider">
-                    <span>SWITCH THEME</span>
-                    <svg class="w-4 h-4 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                    <svg class="w-4 h-4 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                </button>
+    <!-- Optimized Mobile Menu (Centered & Fullscreen) -->
+    <div id="mobile-menu" class="hidden-menu fixed inset-0 bg-white/95 dark:bg-black/95 flex flex-col justify-center items-center text-center p-6 transition-all duration-300">
+        <!-- 内部容器：用于 Flex 布局居中 -->
+        <div class="min-h-full w-full flex flex-col justify-center items-center py-10 px-6">
+            
+            <!-- 菜单内容区 -->
+            <div class="flex flex-col items-center gap-8 w-full max-w-sm animate-[fadeIn_0.4s_ease-out]">
                 
-                <a href="https://www.wjx.cn/vm/hG49aBH.aspx#" target="_blank" class="px-6 py-3 text-sm font-bold transition-all text-center font-mono
-                dark:text-black dark:bg-gold-500 dark:hover:bg-white 
-                text-white bg-black hover:bg-white hover:text-black border-2 border-transparent hover:border-black">
-                立即报名 ->
-                </a>
+                <!-- 顶部装饰线 -->
+                <div class="w-px h-16 bg-gradient-to-b from-transparent via-gold-500 to-transparent opacity-50"></div>
+                
+                <!-- 导航链接 -->
+                <div class="flex flex-col space-y-6 text-center">
+                    <a href="notice/notice.html" class="mobile-link text-3xl font-serif font-bold tracking-widest text-black dark:text-white hover:text-gold-600 dark:hover:text-gold-500 transition-colors">公告</a>
+                    <a href="#about" class="mobile-link text-3xl font-serif font-bold tracking-widest text-black dark:text-white hover:text-gold-600 dark:hover:text-gold-500 transition-colors">介绍</a>
+                    <a href="#tracks" class="mobile-link text-3xl font-serif font-bold tracking-widest text-black dark:text-white hover:text-gold-600 dark:hover:text-gold-500 transition-colors">赛题</a>
+                    <a href="warmup/warmup.html" class="mobile-link text-3xl font-serif font-bold tracking-widest text-black dark:text-white hover:text-gold-600 dark:hover:text-gold-500 transition-colors">示例</a>
+                    <a href="#schedule" class="mobile-link text-3xl font-serif font-bold tracking-widest text-black dark:text-white hover:text-gold-600 dark:hover:text-gold-500 transition-colors">赛程</a>
+                </div>
+    
+                <!-- 功能按钮区 -->
+                <div class="flex flex-col w-full gap-4 mt-4">
+                    <button onclick="toggleTheme()" class="mobile-link group relative overflow-hidden border border-black dark:border-gray-600 px-8 py-3 transition-all hover:bg-black dark:hover:bg-gold-500 w-full">
+                        <span class="relative z-10 font-mono text-sm font-bold tracking-widest group-hover:text-white dark:group-hover:text-black">SWITCH THEME</span>
+                    </button>
+    
+                    <a href="https://www.wjx.cn/vm/hG49aBH.aspx#" target="_blank" class="mobile-link block w-full text-center bg-black dark:bg-white text-white dark:text-black px-8 py-3 shadow-hard hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
+                        <span class="font-mono text-sm font-bold tracking-widest">REGISTER NOW</span>
+                    </a>
+                </div>
+                
+                <!-- 底部装饰线 -->
+                <div class="w-px h-16 bg-gradient-to-b from-transparent via-gold-500 to-transparent opacity-50"></div>
             </div>
         </div>
     </div>
@@ -357,17 +318,21 @@
     <!-- Hero Header -->
     <header class="h-screen flex flex-col justify-center items-center relative px-4 perspective-container overflow-hidden">
         
-        <!-- Fabric Canvas (织物标题特效) -->
-        <canvas id="fabric-canvas"></canvas>
-
-        <div class="absolute top-[10%] left-0 w-full text-center pointer-events-none z-20 transition-opacity duration-500 dark:opacity-40 opacity-100">
+        <div class="absolute top-[15%] left-0 w-full text-center pointer-events-none z-20 transition-opacity duration-500 dark:opacity-40 opacity-100">
             <p class="font-mono text-xs tracking-[1em] dark:text-gold-600 text-black/50 font-bold">中国科学院大学本科部级CTF赛事</p>
         </div>
 
-        <h1 class="sr-only">UCATFLAGS 2025+</h1>
+        <div class="z-30 text-center mb-8 glitch-wrapper">
+            <h1 class="glitch-title text-[12vw] md:text-[8rem] font-serif font-black tracking-tighter dark:text-gold-500 text-black leading-none" data-text="UCATFLAGS">
+                UCATFLAGS
+            </h1>
+            <div class="text-2xl md:text-4xl font-mono tracking-[0.5em] mt-2 dark:text-white text-black opacity-80">
+                2025+
+            </div>
+        </div>
 
         <!-- 倒计时 -->
-        <div class="grid grid-cols-4 gap-4 mt-[55vh] mb-12 font-mono z-30 relative transition-colors duration-500">
+        <div class="grid grid-cols-4 gap-4 mt-12 mb-12 font-mono z-30 relative transition-colors duration-500">
             <div class="countdown-item hover-trigger">
                 <span id="days" class="text-3xl font-bold dark:text-white text-black">00</span><span class="text-xs dark:text-gold-500 text-gray-500 font-bold">DAYS</span>
             </div>
@@ -395,7 +360,7 @@
             </h2>
         </div>
         <div class="font-mono leading-relaxed text-sm dark:text-gray-400 text-gray-800">
-            <p class="mb-6"><strong class="dark:text-gold-500 text-black bg-yellow-200 dark:bg-transparent px-1">UCATFLAGS</strong> 是由中国科学院大学本科CTF竞赛小组主办、本科部支持的顶级网络安全赛事。我们不仅寻找漏洞，更在比特流中寻找秩序。</p>
+            <p class="mb-6"><strong class="dark:text-gold-500 text-black bg-yellow-200 dark:bg-transparent px-1">UCATFLAGS</strong> 是由中国科学院大学本科部支持、本科生CTF小组主办的网络安全技能竞赛。本次比赛旨在通过实战演练，激发同学们对网络安全的兴趣，提升信息安全技术水平。</p>
             <div class="p-4 border mt-4 backdrop-blur-md rounded-sm transition-colors dark:border-gray-800 dark:bg-gray-900/40 border-black bg-white shadow-hard">
                 <span class="dark:text-gold-500 text-black font-bold">$ cat eligibility.txt</span><br>
                 > 对象：中国科学院大学在校本科生<br>
@@ -426,7 +391,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">HTTP</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Web 安全</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">攻破应用防线，注入灵魂。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">深入理解 Web 架构，挖掘应用层安全漏洞。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">SQLi</span><span class="skill-tag">RCE</span><span class="skill-tag">Java</span>
                         </div>
@@ -444,7 +409,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">BIN</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Pwn</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">内存与寄存器的死亡之舞。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">探索二进制底层原理，利用内存错误获取权限。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">Stack</span><span class="skill-tag">Heap</span>
                         </div>
@@ -462,7 +427,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">ASM</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Reverse</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">抽丝剥茧，还原逻辑真相。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">逆向分析程序逻辑，还原核心算法与代码结构。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">IDA</span><span class="skill-tag">Anti-Debug</span>
                         </div>
@@ -480,7 +445,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">MATH</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Crypto</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">数学迷宫中的唯一密钥。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">基于数学原理的密码分析与算法破译。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">RSA</span><span class="skill-tag">ECC</span>
                         </div>
@@ -498,7 +463,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">DATA</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">Misc</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">数据隐藏与取证的艺术。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">涵盖隐写术、流量分析及电子取证的综合挑战。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">Forensics</span><span class="skill-tag">Stego</span>
                         </div>
@@ -516,7 +481,7 @@
                             <span class="font-mono text-xs border px-2 py-1 rounded-none transition-colors dark:border-gray-700 dark:text-gray-500 border-black text-black font-bold">ALG</span>
                         </div>
                         <h3 class="text-2xl font-bold mb-2 dark:text-white text-black">PPC</h3>
-                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">代码速度与逻辑的极致对抗。</p>
+                        <p class="text-xs mb-4 dark:text-gray-400 text-gray-600">考察快速编程能力与复杂算法问题的自动化求解。</p>
                         <div class="flex flex-wrap gap-1">
                             <span class="skill-tag">Python</span><span class="skill-tag">Algo</span>
                         </div>
@@ -548,7 +513,7 @@
                     <span class="font-mono min-w-[150px] dark:text-gray-500 text-gray-400 font-bold">03.09 - 03.20</span>
                     <div>
                         <h3 class="text-xl font-bold dark:text-white text-black">CTF 线上夺旗赛 <span class="badge-live" style="display:none">LIVE</span></h3>
-                        <p class="text-sm mt-1 dark:text-gray-500 text-gray-500">主赛程。Dynamic Scoring System Active.</p>
+                        <p class="text-sm mt-1 dark:text-gray-500 text-gray-500">正式比赛阶段。启用动态积分系统。</p>
                     </div>
                 </div>
             </div>
@@ -582,199 +547,79 @@
     <footer class="border-t py-12 text-center font-mono text-xs relative z-10 transition-colors
         dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600
         border-black bg-white text-gray-500">
-        <p>UCATFLAGS 2025+ // HACK THE PLANET</p>
+        <p>UCATFLAGS 2025+ // PRACTICE & LEARN</p>
     </footer>
 
     <!-- Scripts -->
     <script>
-        // --- 主题管理逻辑 ---
         function toggleTheme() {
             const html = document.documentElement;
             const isDark = html.classList.toggle('dark');
             updateThreeTheme(isDark);
         }
 
-        // --- 汉堡菜单逻辑 (已修复) ---
+        // --- 核心修复：移动端菜单逻辑 ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const mobileLinks = document.querySelectorAll('.mobile-link');
         const body = document.body;
 
         function toggleMenu() {
-            const isActive = mobileMenu.classList.contains('active');
+            if (!mobileMenu) return;
+            const isCurrentlyOpen = mobileMenu.classList.contains('visible-menu');
             
-            if (isActive) {
+            if (isCurrentlyOpen) {
                 // 关闭菜单
-                mobileMenu.classList.remove('active');
-                body.classList.remove('menu-open'); // 移除此列以恢复汉堡图标
-                body.style.overflow = ''; // 恢复滚动
+                mobileMenu.classList.remove('visible-menu');
+                mobileMenu.classList.add('hidden-menu');
+                
+                // 移除 Body 上的锁定类
+                body.classList.remove('menu-open');
+                
+                // 恢复所有元素的点击事件
+                body.style.touchAction = ''; 
             } else {
                 // 打开菜单
-                mobileMenu.classList.add('active');
-                body.classList.add('menu-open'); // 添加此列以变为X图标
-                body.style.overflow = 'hidden'; // 禁止背景滚动
+                mobileMenu.classList.remove('hidden-menu');
+                mobileMenu.classList.add('visible-menu');
+                
+                // 添加 Body 锁定类 (CSS中设置 overflow: hidden)
+                body.classList.add('menu-open');
             }
         }
 
-        // 绑定点击事件
-        mobileMenuBtn.addEventListener('click', toggleMenu);
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 防止冒泡
+                toggleMenu();
+            });
+        }
 
-        // 点击链接后自动关闭
+        // 点击菜单内部链接后自动关闭
         mobileLinks.forEach(link => {
             link.addEventListener('click', () => {
-                if (mobileMenu.classList.contains('active')) {
-                    toggleMenu();
-                }
+                setTimeout(() => {
+                    if (mobileMenu.classList.contains('visible-menu')) {
+                        toggleMenu();
+                    }
+                }, 150);
             });
         });
 
-        // 点击菜单背景也可以关闭 (保留逻辑健壮性，尽管覆盖了全屏)
-        mobileMenu.addEventListener('click', (e) => {
-            if (e.target === mobileMenu) {
-                toggleMenu();
-            }
-        });
-
-        // --- 1. Fabric Canvas Logic ---
-        const fCanvas = document.getElementById('fabric-canvas');
-        const fCtx = fCanvas.getContext('2d');
-        let fWidth, fHeight;
-        let particles = [];
-        let fMouse = { x: -1000, y: -1000, click: false };
-
-        const F_CONFIG = {
-            textLines: ["UCATFLAGS", "2025+"],
-            fontFamily: "Playfair Display, serif",
-            fontWeight: "900",
-            fontSize: 100,
-            lineHeight: 120,
-            particleGap: 11,
-            mouseRadius: 60,
-            clickRadius: 60,
-            clickForce: 35,
-            spring: 0.08,
-            friction: 0.92,
-            gravity: 0.4,
-            recoveryTime: 180,
-            connectionDist: 30,
-            colorDark: '#D4AF37',   
-            colorLight: '#111827',  
-            brokenDark: '#FFFFFF',  
-            brokenLight: '#D4AF37'  
-        };
-
-        class Particle {
-            constructor(x, y) {
-                this.x = x; this.y = y; this.originX = x; this.originY = y;
-                this.vx = 0; this.vy = 0;
-                this.size = Math.random() * 2 + 1;
-                this.isBroken = false; this.breakTimer = 0; this.alpha = Math.random() * 0.5 + 0.5;
-                const isDark = document.documentElement.classList.contains('dark');
-                this.currentColor = isDark ? F_CONFIG.colorDark : F_CONFIG.colorLight;
-            }
-            update(isDark) {
-                const baseColor = isDark ? F_CONFIG.colorDark : F_CONFIG.colorLight;
-                const brokenColor = isDark ? F_CONFIG.brokenDark : F_CONFIG.brokenLight;
-                const dx = fMouse.x - this.x; const dy = fMouse.y - this.y; const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (fMouse.click && dist < F_CONFIG.clickRadius) {
-                    const force = (F_CONFIG.clickRadius - dist) / F_CONFIG.clickRadius;
-                    const angle = Math.atan2(dy, dx);
-                    this.vx -= Math.cos(angle) * force * F_CONFIG.clickForce;
-                    this.vy -= Math.sin(angle) * force * F_CONFIG.clickForce;
-                    this.isBroken = true; this.breakTimer = F_CONFIG.recoveryTime; this.currentColor = brokenColor; this.alpha = 1;
+        // 点击背景遮罩层关闭
+        if (mobileMenu) {
+            mobileMenu.addEventListener('click', (e) => {
+                // 只有直接点击背景遮罩层或内部空白容器时才关闭
+                if (e.target === mobileMenu || e.target.classList.contains('min-h-full')) {
+                    toggleMenu();
                 }
-                if (dist < F_CONFIG.mouseRadius && !this.isBroken) {
-                    const force = (F_CONFIG.mouseRadius - dist) / F_CONFIG.mouseRadius;
-                    const angle = Math.atan2(dy, dx);
-                    this.vx -= Math.cos(angle) * force * 3; this.vy -= Math.sin(angle) * force * 3;
-                }
-                if (this.isBroken) {
-                    this.vy += F_CONFIG.gravity; this.breakTimer--;
-                    if (this.y > fHeight) { this.y = fHeight; this.vy *= -0.5; }
-                    if (this.breakTimer <= 0) { this.isBroken = false; this.currentColor = baseColor; this.alpha = Math.random() * 0.5 + 0.5; }
-                } else {
-                    this.currentColor = baseColor;
-                    const springX = (this.originX - this.x) * F_CONFIG.spring;
-                    const springY = (this.originY - this.y) * F_CONFIG.spring;
-                    this.vx += springX; this.vy += springY;
-                }
-                this.vx *= F_CONFIG.friction; this.vy *= F_CONFIG.friction;
-                this.x += this.vx; this.y += this.vy;
-            }
-            draw() {
-                fCtx.globalAlpha = this.alpha; fCtx.fillStyle = this.currentColor; fCtx.fillRect(this.x, this.y, this.size, this.size); fCtx.globalAlpha = 1.0;
-            }
+            });
         }
-
-        function initFabric() {
-            fWidth = window.innerWidth; fHeight = window.innerHeight;
-            if(fWidth <= 0 || fHeight <= 0) return;
-            fCanvas.width = fWidth; fCanvas.height = fHeight;
-            if (fWidth < 768) { F_CONFIG.particleGap = 3; F_CONFIG.connectionDist = 9; } else { F_CONFIG.particleGap = 6; F_CONFIG.connectionDist = 18; }
-            const calculatedSize = fWidth * 0.12; 
-            const currentFontSize = Math.min(Math.max(calculatedSize, 60), 160);
-            const currentLineHeight = currentFontSize * 1.2;
-            const tempCanvas = document.createElement('canvas');
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCanvas.width = fWidth; tempCanvas.height = fHeight;
-            tempCtx.font = `${F_CONFIG.fontWeight} ${currentFontSize}px ${F_CONFIG.fontFamily}`;
-            tempCtx.fillStyle = 'white'; tempCtx.textAlign = 'center'; tempCtx.textBaseline = 'middle';
-            const startY = fHeight * 0.35; 
-            F_CONFIG.textLines.forEach((line, index) => { tempCtx.fillText(line, fWidth / 2, startY + index * currentLineHeight); });
-            const imageData = tempCtx.getImageData(0, 0, fWidth, fHeight);
-            const data = imageData.data;
-            particles = [];
-            for (let y = 0; y < fHeight; y += F_CONFIG.particleGap) {
-                for (let x = 0; x < fWidth; x += F_CONFIG.particleGap) {
-                    if (data[(y * fWidth + x) * 4 + 3] > 128) { particles.push(new Particle(x, y)); }
-                }
-            }
-        }
-
-        function animateFabric() {
-            fCtx.clearRect(0, 0, fWidth, fHeight); fCtx.lineWidth = 0.5;
-            const isDark = document.documentElement.classList.contains('dark');
-            const lineColor = isDark ? '212, 175, 55' : '0, 0, 0';
-            for (let i = 0; i < particles.length; i++) {
-                const p1 = particles[i]; p1.update(isDark); p1.draw();
-                if (!p1.isBroken) {
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const p2 = particles[j];
-                        if (Math.abs(p1.x - p2.x) > F_CONFIG.connectionDist) continue;
-                        if (Math.abs(p1.y - p2.y) > F_CONFIG.connectionDist) continue;
-                        const dist = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-                        if (dist < F_CONFIG.connectionDist) {
-                            const alpha = (1 - dist / F_CONFIG.connectionDist) * 0.7;
-                            fCtx.strokeStyle = `rgba(${lineColor}, ${alpha})`; fCtx.beginPath(); fCtx.moveTo(p1.x, p1.y); fCtx.lineTo(p2.x, p2.y); fCtx.stroke();
-                        }
-                    }
-                }
-            }
-            if (fMouse.click) fMouse.click = false;
-            requestAnimationFrame(animateFabric);
-        }
-        
-        window.addEventListener('resize', () => { setTimeout(initFabric, 100); });
-        fCanvas.addEventListener('mousemove', e => { const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.clientX - rect.left; fMouse.y = e.clientY - rect.top; });
-        fCanvas.addEventListener('mousedown', e => { fMouse.click = true; const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.clientX - rect.left; fMouse.y = e.clientY - rect.top; });
-        fCanvas.addEventListener('touchstart', e => { fMouse.click = true; const rect = fCanvas.getBoundingClientRect(); fMouse.x = e.touches[0].clientX - rect.left; fMouse.y = e.touches[0].clientY - rect.top; });
-        document.fonts.ready.then(function () { initFabric(); animateFabric(); });
-
-        const cursor = document.getElementById('cursor');
-        const hoverTriggers = document.querySelectorAll('.hover-trigger');
-        document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
-        hoverTriggers.forEach(el => { el.addEventListener('mouseenter', () => cursor.classList.add('hovered')); el.addEventListener('mouseleave', () => cursor.classList.remove('hovered')); });
-
-        gsap.registerPlugin(ScrollTrigger);
-        gsap.from(".countdown-item", { duration: 1, y: 30, opacity: 0, delay: 1, stagger: 0.2 });
-        gsap.utils.toArray("section h2").forEach(h2 => { gsap.from(h2, { scrollTrigger: { trigger: h2, start: "top 80%", toggleActions: "play none none reverse" }, y: 50, opacity: 0, duration: 1 }); });
-        gsap.from(".card-container", { scrollTrigger: { trigger: "#tracks", start: "top 70%" }, y: 50, opacity: 0, duration: 0.8, stagger: 0.1 });
 
         const bgCanvas = document.querySelector('#bg-canvas');
         const scene = new THREE.Scene();
-        // 初始为 Light Mode 的白色雾
-        scene.fog = new THREE.FogExp2(0xffffff, 0.002);
+        // 默认为 Dark Mode 
+        scene.fog = new THREE.FogExp2(0x020202, 0.002);
         
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ canvas: bgCanvas, alpha: true, antialias: true });
@@ -785,8 +630,9 @@
         const posArray = new Float32Array(particlesCount * 3);
         for(let i = 0; i < particlesCount * 3; i++) { posArray[i] = (Math.random() - 0.5) * 150; }
         particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        // 初始为 Light Mode 的黑色粒子
-        const particlesMaterial = new THREE.PointsMaterial({ size: 0.25, color: 0x000000, transparent: true, opacity: 0.6 });
+        
+        // 默认为 Dark Mode 的金色粒子
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.25, color: 0xD4AF37, transparent: true, opacity: 0.6 });
         const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
         scene.add(particlesMesh);
         camera.position.z = 30; camera.position.y = 5;
@@ -816,12 +662,39 @@
         animateThree();
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 
+        // --- 优化后的光标逻辑 (RAF Loop) ---
+        const cursor = document.getElementById('cursor');
+        const hoverTriggers = document.querySelectorAll('.hover-trigger');
+        let cursorX = -100, cursorY = -100; // 初始位置在屏幕外
+        
+        document.addEventListener('mousemove', (e) => { 
+            cursorX = e.clientX; 
+            cursorY = e.clientY; 
+        });
+        
+        // 使用 requestAnimationFrame 更新光标位置
+        function updateCursor() {
+            if(cursor) {
+                cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%)`;
+            }
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+
+        hoverTriggers.forEach(el => { 
+            el.addEventListener('mouseenter', () => cursor.classList.add('hovered')); 
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hovered')); 
+        });
+
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from(".countdown-item", { duration: 1, y: 30, opacity: 0, delay: 1, stagger: 0.2 });
+        gsap.utils.toArray("section h2").forEach(h2 => { gsap.from(h2, { scrollTrigger: { trigger: h2, start: "top 80%", toggleActions: "play none none reverse" }, y: 50, opacity: 0, duration: 1 }); });
+        gsap.from(".card-container", { scrollTrigger: { trigger: "#tracks", start: "top 70%" }, y: 50, opacity: 0, duration: 0.8, stagger: 0.1 });
         const cards = document.querySelectorAll('.card-container');
         cards.forEach(card => {
             const glare = card.querySelector('.card-glare');
             card.addEventListener('mousemove', (e) => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; glare.style.setProperty('--mouse-x', `${x}px`); glare.style.setProperty('--mouse-y', `${y}px`); });
         });
-
         const targetDate = new Date('2026-03-09T08:00:00').getTime(); 
         function updateStatus() {
             const now = new Date().getTime(); const distance = targetDate - now;
