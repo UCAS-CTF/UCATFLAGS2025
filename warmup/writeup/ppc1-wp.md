@@ -18,6 +18,7 @@ helpme
 
 1. 改正代码：
 
+{% raw %}
 ```C
 #include <stdio.h>                     // 中文《》改为<>
 
@@ -41,6 +42,7 @@ int main() {                           // mian改成main
 }
 
 ```
+{% endraw %}
 
 2. 运行改正后的代码获得flag
 
