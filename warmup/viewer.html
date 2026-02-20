@@ -174,7 +174,9 @@
         function preprocessMarkdown(text) {
             // 清除所有的 {% raw %} 和 {% endraw %}
             text = text.replace(/{%\s*raw\s*%}/g, '').replace(/{%\s*endraw\s*%}/g, '');
-            
+            // 对图片引用 "![img](image" 进行修改，调整为 "![img](writeup/image"
+            text = text.replace(/!\[([^\]]*)\]\((?!https?:\/\/|\/)([^)]+)\)/g, '![$1](writeup/$2)');
+
             // 解决公式解析冲突：如果在中文和单 $ 之间没有空格，KaTeX 可能会失效。
             // 使用正则在 中文字符 与 $ 符号之间强行插入一个空格。
             // 负向断言 (?!\$) 和 (?<!\$) 确保不会破坏多行公式符号 $$。
@@ -211,7 +213,7 @@
                 
                 // 第二步：渲染为 HTML 结构并注入
                 mdContainer.innerHTML = marked.parse(processedText);
-                
+
                 // 第三步：手动触发代码高亮（定位所有 pre code 块）
                 document.querySelectorAll('#markdown-content pre code').forEach((block) => {
                     hljs.highlightElement(block);
