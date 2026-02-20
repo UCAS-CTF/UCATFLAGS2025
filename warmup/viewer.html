@@ -29,7 +29,8 @@
     
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+    <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -39,53 +40,85 @@
     <style>
         body, html { margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
         
-        /* 赛博朋克背景纹理 */
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        /* 自定义 Markdown 渲染样式 (适配暗黑风) */
-        #markdown-content { color: #d1d5db; font-size: 1rem; line-height: 1.75; }
-        #markdown-content h1 { font-size: 2.25rem; font-weight: bold; margin-bottom: 1.5rem; color: #06b6d4; font-family: 'Playfair Display', serif; border-bottom: 1px solid #262626; padding-bottom: 0.5rem; }
-        #markdown-content h2 { font-size: 1.75rem; font-weight: bold; margin-top: 2.5rem; margin-bottom: 1.25rem; color: #f3f4f6; font-family: 'Playfair Display', serif; }
-        #markdown-content h3 { font-size: 1.25rem; font-weight: bold; margin-top: 2rem; margin-bottom: 1rem; color: #e5e7eb; }
+        /* ================= 基础 Markdown 样式 (Light/Dark 双轨) ================= */
+        #markdown-content { font-size: 1rem; line-height: 1.75; transition: color 0.3s; }
+        #markdown-content h1 { font-size: 2.25rem; font-weight: bold; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; padding-bottom: 0.5rem; }
+        #markdown-content h2 { font-size: 1.75rem; font-weight: bold; margin-top: 2.5rem; margin-bottom: 1.25rem; font-family: 'Playfair Display', serif; }
+        #markdown-content h3 { font-size: 1.25rem; font-weight: bold; margin-top: 2rem; margin-bottom: 1rem; }
         #markdown-content p { margin-bottom: 1.25rem; }
-        #markdown-content a { color: #22d3ee; text-decoration: none; border-bottom: 1px border-transparent; transition: all 0.2s; }
-        #markdown-content a:hover { border-bottom-color: #22d3ee; }
-        #markdown-content ul { list-style-type: square; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #9ca3af; }
-        #markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #9ca3af; }
+        #markdown-content a { text-decoration: none; border-bottom: 1px solid transparent; transition: all 0.2s; }
+        #markdown-content ul { list-style-type: square; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+        #markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
         #markdown-content li { margin-bottom: 0.5rem; }
-        #markdown-content blockquote { border-left: 4px solid #06b6d4; padding-left: 1.25rem; color: #9ca3af; font-style: italic; background: rgba(6, 182, 212, 0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; margin-bottom: 1.5rem; border-radius: 0 0.25rem 0.25rem 0; }
+        #markdown-content blockquote { padding-left: 1.25rem; font-style: italic; padding-top: 0.5rem; padding-bottom: 0.5rem; margin-bottom: 1.5rem; border-radius: 0 0.25rem 0.25rem 0; }
         
-        /* 代码块样式 */
-        #markdown-content pre { background: #000000 !important; border: 1px solid #262626; border-radius: 0.375rem; padding: 1.25rem; overflow-x: auto; margin-bottom: 1.5rem; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-        #markdown-content pre code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; background: transparent; padding: 0; border: none; }
-        #markdown-content p > code, #markdown-content li > code, #markdown-content table code { background: rgba(6, 182, 212, 0.1); color: #22d3ee; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875em; border: 1px solid rgba(6, 182, 212, 0.2); }
+        #markdown-content pre { border-radius: 0.375rem; padding: 1.25rem; overflow-x: auto; margin-bottom: 1.5rem; }
+        #markdown-content pre code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; background: transparent !important; padding: 0; border: none; }
+        #markdown-content p > code, #markdown-content li > code, #markdown-content table code { padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875em; }
         
-        /* 表格样式 (常用于寄存器状态、参数说明等) */
         #markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.875rem; }
-        #markdown-content th { background-color: #111; color: #06b6d4; font-weight: bold; text-align: left; padding: 0.75rem 1rem; border: 1px solid #333; }
-        #markdown-content td { padding: 0.75rem 1rem; border: 1px solid #333; color: #d1d5db; }
-        #markdown-content tr:nth-child(even) { background-color: #0a0a0a; }
+        #markdown-content th, #markdown-content td { padding: 0.75rem 1rem; border: 1px solid; text-align: left; }
         
-        /* 媒体样式 */
-        #markdown-content img { max-width: 100%; height: auto; border-radius: 0.375rem; border: 1px solid #262626; margin: 1.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        #markdown-content hr { border: 0; border-top: 1px dashed #333; margin: 2rem 0; }
+        #markdown-content img { max-width: 100%; height: auto; border-radius: 0.375rem; margin: 1.5rem 0; }
+        
+        /* ------ 亮色主题 (Light Mode) ------ */
+        #markdown-content { color: #374151; }
+        #markdown-content h1 { color: #0891b2; border-bottom: 1px solid #e5e7eb; }
+        #markdown-content h2 { color: #111827; }
+        #markdown-content h3 { color: #4b5563; }
+        #markdown-content a { color: #0891b2; }
+        #markdown-content a:hover { border-bottom-color: #0891b2; }
+        #markdown-content ul, #markdown-content ol { color: #4b5563; }
+        #markdown-content blockquote { border-left: 4px solid #06b6d4; color: #6b7280; background: rgba(6, 182, 212, 0.05); }
+        #markdown-content pre { background: #f9fafb; border: 1px solid #e5e7eb; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
+        #markdown-content p > code, #markdown-content li > code, #markdown-content table code { background: #ecfeff; color: #0891b2; border: 1px solid #cffafe; }
+        #markdown-content th { background-color: #f3f4f6; color: #0891b2; border-color: #d1d5db; }
+        #markdown-content td { border-color: #d1d5db; color: #374151; }
+        #markdown-content tr:nth-child(even) { background-color: #f9fafb; }
+        #markdown-content img { border: 1px solid #e5e7eb; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        #markdown-content hr { border: 0; border-top: 1px dashed #d1d5db; margin: 2rem 0; }
+
+        /* ------ 暗黑主题 (Dark Mode) ------ */
+        .dark #markdown-content { color: #d1d5db; }
+        .dark #markdown-content h1 { color: #06b6d4; border-bottom: 1px solid #262626; }
+        .dark #markdown-content h2 { color: #f3f4f6; }
+        .dark #markdown-content h3 { color: #e5e7eb; }
+        .dark #markdown-content a { color: #22d3ee; }
+        .dark #markdown-content a:hover { border-bottom-color: #22d3ee; }
+        .dark #markdown-content ul, .dark #markdown-content ol { color: #9ca3af; }
+        .dark #markdown-content blockquote { border-left: 4px solid #06b6d4; color: #9ca3af; background: rgba(6, 182, 212, 0.05); }
+        .dark #markdown-content pre { background: #000000; border: 1px solid #262626; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .dark #markdown-content p > code, .dark #markdown-content li > code, .dark #markdown-content table code { background: rgba(6, 182, 212, 0.1); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.2); }
+        .dark #markdown-content th { background-color: #111; color: #06b6d4; border-color: #333; }
+        .dark #markdown-content td { border-color: #333; color: #d1d5db; }
+        .dark #markdown-content tr:nth-child(even) { background-color: #0a0a0a; }
+        .dark #markdown-content img { border: 1px solid #262626; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .dark #markdown-content hr { border: 0; border-top: 1px dashed #333; margin: 2rem 0; }
         
         /* 滚动条美化 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #020202; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #f3f4f6; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-track { background: #020202; }
+        .dark ::-webkit-scrollbar-thumb { background: #333; }
         ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
     </style>
 </head>
-<body class="bg-white dark:bg-[#020202] text-black dark:text-gray-300 min-h-screen flex flex-col">
+<body class="bg-gray-50 dark:bg-[#020202] text-black dark:text-gray-300 min-h-screen flex flex-col transition-colors duration-300">
     <div class="noise-overlay"></div>
 
-    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 backdrop-blur-md border-b transition-colors duration-500 dark:bg-black/80 dark:border-cyan-500/20 bg-white/90 border-black">
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 backdrop-blur-md border-b transition-colors duration-500 dark:bg-black/80 dark:border-cyan-500/20 bg-white/90 border-gray-200">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <a href="warmup.html" class="text-lg font-bold tracking-tighter cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors dark:text-cyan-500 text-black flex items-center gap-2">
                 <i class="fa-solid fa-arrow-left"></i> BACK
             </a>
             <div class="flex items-center gap-4">
+                <button onclick="toggleTheme()" class="p-2 rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10" title="Toggle Theme">
+                    <i class="fa-solid fa-moon dark:hidden text-gray-600"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-cyan-500"></i>
+                </button>
                 <span id="file-name" class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-900 px-3 py-1 rounded border border-gray-200 dark:border-gray-800">
                     <i class="fa-solid fa-file-code mr-1"></i> Loading...
                 </span>
@@ -110,27 +143,46 @@
         <div id="markdown-content" class="hidden bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-gray-800 p-6 md:p-10 rounded shadow-sm dark:shadow-glow transition-all duration-500 opacity-0 transform translate-y-4"></div>
     </main>
 
-    <footer class="border-t py-6 text-center font-mono text-xs dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600 border-black bg-white text-gray-500 mt-auto relative z-10">
+    <footer class="border-t py-6 text-center font-mono text-xs dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600 border-gray-200 bg-white text-gray-500 mt-auto relative z-10">
         <p>UCATFLAGS 2025+ // WRITEUP VIEWER</p>
     </footer>
 
     <script>
-        // 配置 Marked.js，集成 Highlight.js
+        // 1. 初始化 marked.js（移除自带的 highlight 钩子，交由后面手动处理，避免冲突）
         marked.setOptions({
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    try {
-                        return hljs.highlight(code, { language: lang }).value;
-                    } catch (__) {}
-                }
-                return code; // 降级处理
-            },
-            breaks: true, // 允许回车换行
-            gfm: true     // 开启 GitHub 风格 Markdown (支持表格、删除线等)
+            breaks: true,
+            gfm: true
         });
-
-        // 挂载 KaTeX 插件，支持渲染 $ inline $ 和 $$ block $$ 公式
         marked.use(markedKatex({ throwOnError: false }));
+
+        // 2. 主题切换与 Highlight.js 样式表控制
+        function updateHljsTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('hljs-dark').disabled = !isDark;
+            document.getElementById('hljs-light').disabled = isDark;
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            updateHljsTheme();
+        }
+
+        // 初始化时设置正确的高亮主题
+        updateHljsTheme();
+
+        // 3. 核心预处理函数 (清理 Jekyll 标签 & 修复中文公式冲突)
+        function preprocessMarkdown(text) {
+            // 清除所有的 {% raw %} 和 {% endraw %}
+            text = text.replace(/{%\s*raw\s*%}/g, '').replace(/{%\s*endraw\s*%}/g, '');
+            
+            // 解决公式解析冲突：如果在中文和单 $ 之间没有空格，KaTeX 可能会失效。
+            // 使用正则在 中文字符 与 $ 符号之间强行插入一个空格。
+            // 负向断言 (?!\$) 和 (?<!\$) 确保不会破坏多行公式符号 $$。
+            text = text.replace(/([\u4e00-\u9fa5])\$(?!\$)/g, '$1 $');
+            text = text.replace(/(?<!\$)\$([\u4e00-\u9fa5])/g, '$ $1');
+            
+            return text;
+        }
 
         async function loadWriteup() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -144,25 +196,31 @@
                 return;
             }
 
-            // 显示去除路径的文件名
             const cleanName = fileUrl.split('/').pop();
             fileNameEl.innerHTML = `<i class="fa-solid fa-file-lines mr-1 text-cyan-500"></i> ${cleanName}`;
 
             try {
-                // Fetch 获取原始 Markdown 数据
                 const response = await fetch(fileUrl);
                 if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
                 
-                const markdownText = await response.text();
+                const rawMarkdownText = await response.text();
                 
-                // 解析并注入 HTML
-                mdContainer.innerHTML = marked.parse(markdownText);
+                // --- 核心修复流程 ---
+                // 第一步：预处理 Markdown 文本（去标签、修空格）
+                const processedText = preprocessMarkdown(rawMarkdownText);
+                
+                // 第二步：渲染为 HTML 结构并注入
+                mdContainer.innerHTML = marked.parse(processedText);
+                
+                // 第三步：手动触发代码高亮（定位所有 pre code 块）
+                document.querySelectorAll('#markdown-content pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
                 
                 // 切换 UI 状态并执行动画
                 document.getElementById('loading').classList.add('hidden');
                 mdContainer.classList.remove('hidden');
                 
-                // 触发进入动画
                 setTimeout(() => {
                     mdContainer.classList.remove('opacity-0', 'translate-y-4');
                     mdContainer.classList.add('opacity-100', 'translate-y-0');
@@ -181,7 +239,6 @@
             document.getElementById('error-details').innerText = detail;
         }
 
-        // 初始化加载
         loadWriteup();
     </script>
 </body>
