@@ -5,32 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Challenges | UCATFLAGS 2025+</title>
     
+    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
-
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 900: '#164e63' },
-                        dark: { bg: '#020202', surface: '#0a0a0a', border: '#262626' }
+                        // 青色系 (Cyan)
+                        cyan: {
+                            400: '#22d3ee', // Bright Cyan
+                            500: '#06b6d4', // Primary Cyan
+                            600: '#0891b2', // Deep Cyan
+                            900: '#164e63', // Darkest Cyan
+                        },
+                        dark: {
+                            bg: '#020202', surface: '#0a0a0a', border: '#262626'
+                        }
                     },
                     fontFamily: {
                         'mono': ['"JetBrains Mono"', 'monospace'],
                         'sans': ['"Space Grotesk"', 'sans-serif'],
                         'serif': ['"Playfair Display"', 'serif'],
                     },
-                    boxShadow: { 'glow': '0 0 15px rgba(6, 182, 212, 0.3)' },
-                    animation: { 'fade-in': 'fadeIn 0.4s ease-out forwards' },
+                    boxShadow: {
+                        'hard': '4px 4px 0px 0px rgba(0,0,0,1)',
+                        'glow': '0 0 15px rgba(6, 182, 212, 0.3)', // 青色光晕
+                    },
+                    animation: { 'fade-in': 'fadeIn 0.5s ease-out forwards' },
                     keyframes: { fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
                 }
             }
@@ -41,60 +45,71 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        :root { --cursor-size: 20px; }
         body, html { margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; overflow-x: hidden; scroll-behavior: smooth; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
         .dark ::-webkit-scrollbar-track { background: #020202; }
         .dark ::-webkit-scrollbar-thumb { background: #333; border: 1px solid #222; }
         
-        body.menu-open { overflow: hidden !important; height: 100vh; touch-action: none; }
+        /* 核心：菜单打开时的防滚动锁 */
+        body.menu-open { overflow: hidden !important; height: 100vh; height: 100dvh; padding-right: 0; touch-action: none; }
 
+        /* 背景纹理 */
         .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
         
-        .challenge-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(10px); }
-        .challenge-card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
-        .dark .challenge-card:hover { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); }
+        /* 卡片样式 */
+        .challenge-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+        }
+        .challenge-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        .dark .challenge-card:hover {
+            border-color: #06b6d4; /* Cyan-500 */
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+        }
 
-        #mobile-menu { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 100; transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease; }
-        .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; }
+        /* 移动端全屏菜单 */
+        #mobile-menu {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; z-index: 100;
+            overflow-y: auto; overscroll-behavior: contain; touch-action: auto;
+            transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease;
+        }
+        .hidden-menu { opacity: 0; visibility: hidden; pointer-events: none; backdrop-filter: blur(0px); }
         .visible-menu { opacity: 1; visibility: visible; pointer-events: auto; backdrop-filter: blur(16px); }
         
+        /* 汉堡按钮动画 */
         .icon-line { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
         body.menu-open #mobile-menu-btn .line-1 { transform: translateY(6px) rotate(45deg); }
         body.menu-open #mobile-menu-btn .line-2 { opacity: 0; transform: translateX(-10px); }
         body.menu-open #mobile-menu-btn .line-3 { transform: translateY(-6px) rotate(-45deg); }
 
+        /* 输入框聚焦动画 */
         .input-group:focus-within .input-border { width: 100%; }
         .input-border { transition: width 0.3s ease; width: 0%; }
         
-        .solved-badge { background: repeating-linear-gradient(45deg, #06b6d4, #06b6d4 10px, #0891b2 10px, #0891b2 20px); color: white; font-weight: bold; }
-
-        /* Modal 内的 Markdown 渲染样式 */
-        .md-content { font-size: 0.95rem; line-height: 1.7; color: #4b5563; }
-        .dark .md-content { color: #d1d5db; }
-        .md-content h1, .md-content h2, .md-content h3 { font-family: 'Playfair Display', serif; font-weight: bold; margin-bottom: 1rem; }
-        .md-content h1 { font-size: 2rem; color: #06b6d4; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 0.5rem; margin-top: 1rem; }
-        .md-content h2 { font-size: 1.5rem; margin-top: 2rem; color: #111; }
-        .dark .md-content h2 { color: #f3f4f6; }
-        .md-content p { margin-bottom: 1rem; }
-        .md-content a { color: #06b6d4; text-decoration: underline; }
-        .md-content ul { list-style: square inside; margin-bottom: 1rem; }
-        .md-content ol { list-style: decimal inside; margin-bottom: 1rem; }
-        .md-content pre { background: #000; padding: 1.25rem; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid #262626; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
-        .md-content code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; }
-        .md-content p > code, .md-content li > code { background: rgba(6, 182, 212, 0.1); color: #06b6d4; padding: 0.2rem 0.4rem; border-radius: 0.25rem; }
-        .md-content blockquote { border-left: 4px solid #06b6d4; font-style: italic; margin-bottom: 1.5rem; background: rgba(6, 182, 212, 0.05); padding: 0.5rem 1rem; }
-        .md-content img { max-width: 100%; border-radius: 0.375rem; border: 1px solid rgba(128,128,128,0.2); margin: 1.5rem 0; }
+        /* Solved Badge */
+        .solved-badge {
+            background: repeating-linear-gradient(45deg, #06b6d4, #06b6d4 10px, #0891b2 10px, #0891b2 20px);
+            color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
-<body class="bg-white dark:bg-[#020202] text-black dark:text-gray-300 transition-colors duration-500 min-h-screen flex flex-col">
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-gray-300 transition-colors duration-500 min-h-screen flex flex-col">
 
     <div class="noise-overlay"></div>
 
+    <!-- 导航栏 -->
     <nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-6 backdrop-blur-md border-b transition-colors duration-500 dark:bg-black/80 dark:border-cyan-500/20 bg-white/90 border-black">
         <a href="../index.html" class="text-xl font-bold tracking-tighter cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors dark:text-cyan-500 text-black flex items-center gap-2 relative z-50">
             <i class="fa-solid fa-flag"></i> UCATFLAGS_
         </a>
         
+        <!-- Desktop Menu -->
         <div class="hidden md:flex items-center space-x-8 text-sm uppercase tracking-widest font-bold">
             <a href="../index.html" class="hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors">Home</a>
             <button onclick="filterChallenges('all')" class="hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors">All</button>
@@ -105,6 +120,7 @@
             </button>
         </div>
 
+        <!-- Mobile Menu Button -->
         <button id="mobile-menu-btn" class="md:hidden z-[101] relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus:outline-none">
             <span class="icon-line line-1 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
             <span class="icon-line line-2 w-6 h-0.5 bg-black dark:bg-white block pointer-events-none"></span>
@@ -112,21 +128,24 @@
         </button>
     </nav>
 
+    <!-- Fullscreen Mobile Menu (Optimized) -->
     <div id="mobile-menu" class="hidden-menu bg-white/95 dark:bg-black/95 flex flex-col justify-center items-center text-center p-6">
         <div class="min-h-full w-full flex flex-col justify-center items-center py-10 px-6">
-            <div class="flex flex-col items-center gap-8 w-full max-w-sm">
+            <div class="flex flex-col items-center gap-8 w-full max-w-sm animate-[fadeIn_0.4s_ease-out]">
                 <div class="w-px h-16 bg-gradient-to-b from-transparent via-cyan-500 to-transparent opacity-50"></div>
                 <div class="flex flex-col space-y-6 text-center text-2xl font-serif font-bold">
-                    <a href="../index.html" class="hover:text-cyan-500">HOME</a>
-                    <button onclick="filterChallenges('all'); toggleMenu()" class="hover:text-cyan-500">ALL CHALLENGES</button>
-                    <button onclick="filterChallenges('ppc'); toggleMenu()" class="hover:text-cyan-500">PPC TRACK</button>
+                    <a href="../index.html" class="mobile-link hover:text-cyan-500">HOME</a>
+                    <button onclick="filterChallenges('all'); toggleMenu()" class="mobile-link hover:text-cyan-500">ALL CHALLENGES</button>
+                    <button onclick="filterChallenges('ppc'); toggleMenu()" class="mobile-link hover:text-cyan-500">PPC TRACK</button>
                 </div>
-                <button onclick="toggleTheme()" class="border border-current px-8 py-3 w-full font-mono text-sm font-bold mt-4">SWITCH THEME</button>
+                <button onclick="toggleTheme()" class="mobile-link border border-current px-8 py-3 w-full font-mono text-sm font-bold mt-4">SWITCH THEME</button>
             </div>
         </div>
     </div>
 
+    <!-- Main Content -->
     <main class="flex-grow pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto w-full relative z-10">
+        
         <header class="mb-12">
             <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4 dark:text-white text-black">
                 WarmUp <span class="text-cyan-500">Arena</span>
@@ -137,6 +156,7 @@
                 // MD5_VERIFICATION: ENABLED
             </p>
             
+            <!-- Category Filter -->
             <div class="flex flex-wrap gap-2 mt-8 font-mono text-xs font-bold">
                 <button onclick="filterChallenges('all')" class="filter-btn active px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="all">ALL</button>
                 <button onclick="filterChallenges('ppc')" class="filter-btn px-4 py-2 border border-black dark:border-gray-600 hover:bg-black hover:text-white dark:hover:bg-cyan-500 dark:hover:text-black transition-all" data-category="ppc">PPC</button>
@@ -147,43 +167,24 @@
             </div>
         </header>
 
-        <div id="challenge-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <!-- Challenge Grid -->
+        <div id="challenge-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Challenges will be injected here via JS -->
+        </div>
+
     </main>
 
     <footer class="border-t py-8 text-center font-mono text-xs dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600 border-black bg-white text-gray-500">
         <p>UCATFLAGS 2025+ // PRACTICE ENVIRONMENT</p>
     </footer>
 
-    <div id="wp-modal" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeWP()"></div>
-        <div class="relative w-full max-w-4xl max-h-[85vh] bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-cyan-500/30 shadow-2xl dark:shadow-glow flex flex-col rounded-md animate-fade-in">
-            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-black/50 rounded-t-md">
-                <h2 id="wp-modal-title" class="text-sm font-bold font-mono dark:text-cyan-500 text-cyan-600 tracking-widest"></h2>
-                <button onclick="closeWP()" class="text-gray-500 hover:text-red-500 transition-colors w-8 h-8 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-800 hover:bg-red-100 dark:hover:bg-red-900/30">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-            <div id="wp-modal-body" class="p-6 md:p-10 overflow-y-auto flex-grow custom-scrollbar bg-white dark:bg-transparent rounded-b-md">
-                </div>
-        </div>
-    </div>
-
+    <!-- Logic -->
     <script>
-        // 配置 Marked.js，开启代码高亮与 KaTeX 数学公式支持
-        marked.setOptions({
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    try { return hljs.highlight(code, { language: lang }).value; } catch (__) {}
-                }
-                return code;
-            },
-            breaks: true,
-            gfm: true
-        });
-        marked.use(markedKatex({ throwOnError: false }));
-
-        // --- 1. 题目数据 ---
-                const challenges = [
+        // --- 1. 题目数据 (完整配置) ---
+        // 注意：flagHash 存储的是 ucatflags{...} 的 MD5 值
+        // 附件路径: attachment/xxx/
+        // Writeup路径: writeup/xxx-wp.md
+        const challenges = [
             // === PPC Track ===
             {
                 id: 'ppc0',
@@ -389,7 +390,10 @@
         function renderChallenges(filter = 'all') {
             grid.innerHTML = '';
             const solvedList = JSON.parse(localStorage.getItem('ucat_solved_ids') || '[]');
-            const filtered = filter === 'all' ? challenges : challenges.filter(c => c.category === filter);
+
+            const filtered = filter === 'all' 
+                ? challenges 
+                : challenges.filter(c => c.category === filter);
 
             filtered.forEach(c => {
                 const isSolved = solvedList.includes(c.id);
@@ -399,6 +403,7 @@
                 
                 const cardColor = isSolved ? 'border-cyan-500/50' : 'border-black/10 dark:border-gray-700';
                 
+                // 附件 HTML
                 let filesHtml = '';
                 if (c.files && c.files.length > 0) {
                     filesHtml = `<div class="mt-4 pt-4 border-t border-dashed border-gray-300 dark:border-gray-800">
@@ -413,25 +418,34 @@
                     </div>`;
                 }
 
-                // 🌟 修改点 1：这里的 WP 不再是 <a> 链接跳转，而是调用 openWP() 弹窗函数
+                // Writeup 按钮 HTML (如果有 Writeup)
+                // let wpHtml = '';
+                // if (c.wp) {
+                //     wpHtml = `<a href="${c.wp}" target="_blank" class="ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 text-gray-500 hover:text-cyan-500 hover:border-cyan-500 transition-colors rounded font-mono" title="View Writeup"><i class="fa-solid fa-book-open"></i> WP</a>`;
+                // }
                 let wpHtml = '';
                 if (c.wp) {
-                    // 转义标题中可能存在的单引号
-                    const safeTitle = c.title.replace(/'/g, "\\'");
-                    wpHtml = `<button onclick="openWP('${c.wp}', '${safeTitle}')" class="ml-2 px-3 py-1 text-xs border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-cyan-600 hover:border-cyan-600 dark:hover:text-cyan-500 dark:hover:border-cyan-500 transition-colors rounded font-mono flex items-center gap-1" title="View Writeup">
-                        <i class="fa-solid fa-terminal"></i> WP
-                    </button>`;
+                    // 之前是直接链接: href="${c.wp}"
+                    // 现在修改为带参数的跳转，并进行 URI 编码以防路径出错
+                    const viewerUrl = `viewer.html?file=${encodeURIComponent(c.wp)}`;
+                    wpHtml = `<a href="${viewerUrl}" target="_blank" class="ml-2 px-2 py-1 text-xs border border-gray-300 dark:border-gray-700 text-gray-500 hover:text-cyan-500 hover:border-cyan-500 transition-colors rounded font-mono" title="View Writeup"><i class="fa-solid fa-book-open"></i> WP</a>`;
                 }
 
+                // 核心输入区域逻辑
                 let inputHtml = '';
                 if (c.isDynamic) {
+                    // 动态 Flag 显示提示，不显示输入框
                     inputHtml = `
                     <div class="mt-6 text-center py-2 bg-gray-100 dark:bg-gray-900 rounded border border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center gap-1">
                         <span class="text-xs font-mono text-gray-500 dark:text-gray-400 font-bold"><i class="fa-solid fa-server"></i> Dynamic Flag</span>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-600">Verification in instance</span>
                     </div>
-                    <div class="flex justify-end mt-2">${wpHtml}</div>
+                    <div class="flex justify-end mt-2">
+                         ${wpHtml}
+                    </div>
                     `;
                 } else {
+                    // 静态 Flag 显示输入框
                     inputHtml = `
                     <div class="mt-6 relative input-group">
                         <div class="flex gap-2">
@@ -455,7 +469,7 @@
                     `;
                 }
 
-                grid.innerHTML += `
+                const html = `
                 <div class="challenge-card relative bg-white dark:bg-[#0a0a0a] border ${cardColor} p-6 rounded-sm shadow-sm hover:shadow-glow group flex flex-col h-full animate-fade-in">
                     <div class="flex justify-between items-start mb-4">
                         <div class="flex flex-col">
@@ -467,111 +481,99 @@
                             ${statusBadge}
                         </div>
                     </div>
+                    
                     <p class="text-sm text-gray-600 dark:text-gray-400 font-mono mb-4 flex-grow">${c.desc}</p>
+                    
                     ${filesHtml}
+
                     ${inputHtml}
                 </div>
                 `;
+                grid.innerHTML += html;
             });
         }
 
-        // --- 3. 🌟 新增：处理 WP 弹窗与 Fetch 逻辑 ---
-        async function openWP(path, title) {
-            const modal = document.getElementById('wp-modal');
-            const titleEl = document.getElementById('wp-modal-title');
-            const bodyEl = document.getElementById('wp-modal-body');
-            
-            // 锁定背景滚动并显示弹窗
-            document.body.classList.add('overflow-hidden');
-            modal.classList.remove('hidden');
-            titleEl.innerHTML = `<i class="fa-solid fa-terminal mr-2"></i> ${title} <span class="text-gray-500 ml-2">// EXECUTE WRITEUP</span>`;
-            
-            // 加载状态
-            bodyEl.innerHTML = `
-                <div class="text-center font-mono text-cyan-500 py-20 animate-pulse">
-                    <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-6"></i>
-                    <p class="tracking-widest">// FETCHING_PAYLOAD_DATA...</p>
-                </div>
-            `;
-            
-            try {
-                // 开始获取 Markdown 文件
-                const response = await fetch(path);
-                
-                // 如果 fetch 发现文件不存在 (404等)，手动抛出异常
-                if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-                
-                const mdText = await response.text();
-                
-                // 成功渲染
-                bodyEl.innerHTML = `<div class="md-content text-left">${marked.parse(mdText)}</div>`;
-                
-            } catch (error) {
-                // 🛑 Fetch 失败：就在弹窗内部显示赛博朋克报错，避免跳转！
-                bodyEl.innerHTML = `
-                    <div class="text-center font-mono text-red-600 dark:text-red-500 py-16 border border-red-500/30 bg-red-50 dark:bg-red-500/5 rounded p-8 mt-4">
-                        <i class="fa-solid fa-triangle-exclamation text-5xl mb-6 animate-pulse"></i>
-                        <h2 class="text-xl font-bold mb-2">ACCESS DENIED // 404 NOT FOUND</h2>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 tracking-wide">
-                            >_ TARGET_NOT_FOUND: The requested payload has been scrubbed or does not exist.<span class="animate-pulse text-red-500">_</span>
-                        </p>
-                        <div class="text-left text-xs text-gray-500 bg-gray-100 dark:bg-black p-4 rounded border border-gray-200 dark:border-gray-800 break-all">
-                            <span class="text-cyan-600 dark:text-cyan-500">System.Exception:</span> Fetch request rejected.<br>
-                            <span class="text-cyan-600 dark:text-cyan-500">Target Path:</span> ${path}<br>
-                            <span class="text-cyan-600 dark:text-cyan-500">Trace:</span> ${error.message}
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function closeWP() {
-            document.getElementById('wp-modal').classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-            // 清空内容以防下次闪烁
-            document.getElementById('wp-modal-body').innerHTML = '';
-        }
-
-        // --- 4. 其它校验与交互逻辑 ---
+        // --- 3. 校验逻辑 (MD5) ---
         function checkFlag(id) {
             const inputEl = document.getElementById(`input-${id}`);
             const msgEl = document.getElementById(`msg-${id}`);
             const userFlag = inputEl.value.trim();
-            if (!userFlag) { msgEl.innerText = "! EMPTY"; msgEl.className = "text-xs font-mono h-4 text-red-500"; return; }
+            
+            if (!userFlag) {
+                msgEl.innerText = "! INPUT EMPTY";
+                msgEl.className = "text-xs font-mono h-4 text-red-500";
+                return;
+            }
+
+            // 计算输入值的 MD5
             const userHash = CryptoJS.MD5(userFlag).toString();
             const challenge = challenges.find(c => c.id === id);
 
             if (userHash === challenge.flagHash) {
-                msgEl.innerText = ">> GRANTED // +" + challenge.points; msgEl.className = "text-xs font-mono h-4 text-cyan-500 font-bold";
+                msgEl.innerText = ">> ACCESS GRANTED // + " + challenge.points;
+                msgEl.className = "text-xs font-mono h-4 text-cyan-500 font-bold";
+                
+                // 保存状态
                 const solvedList = JSON.parse(localStorage.getItem('ucat_solved_ids') || '[]');
-                if (!solvedList.includes(id)) { solvedList.push(id); localStorage.setItem('ucat_solved_ids', JSON.stringify(solvedList)); setTimeout(() => renderChallenges(activeCategory), 1000); }
+                if (!solvedList.includes(id)) {
+                    solvedList.push(id);
+                    localStorage.setItem('ucat_solved_ids', JSON.stringify(solvedList));
+                    setTimeout(() => renderChallenges(activeCategory), 1000); // 1秒后刷新 UI
+                }
             } else {
-                msgEl.innerText = ">> DENIED"; msgEl.className = "text-xs font-mono h-4 text-red-500 font-bold";
-                inputEl.classList.add('animate-pulse'); setTimeout(() => inputEl.classList.remove('animate-pulse'), 500);
+                msgEl.innerText = ">> ACCESS DENIED";
+                msgEl.className = "text-xs font-mono h-4 text-red-500 font-bold";
+                inputEl.classList.add('animate-pulse');
+                setTimeout(() => inputEl.classList.remove('animate-pulse'), 500);
             }
         }
 
+        // --- 4. 筛选逻辑 ---
         let activeCategory = 'all';
         function filterChallenges(cat) {
             activeCategory = cat;
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.dataset.category === cat ? btn.classList.add('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black') : btn.classList.remove('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black');
+                if (btn.dataset.category === cat) {
+                    btn.classList.add('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black');
+                } else {
+                    btn.classList.remove('bg-black', 'text-white', 'dark:bg-cyan-500', 'dark:text-black');
+                }
             });
             renderChallenges(cat);
         }
 
+        // --- 5. 菜单与主题逻辑 ---
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         const mobileMenu = document.getElementById('mobile-menu');
         const body = document.body;
 
         function toggleMenu() {
-            mobileMenu.classList.contains('visible-menu') ? (mobileMenu.classList.remove('visible-menu'), mobileMenu.classList.add('hidden-menu'), body.classList.remove('menu-open')) : (mobileMenu.classList.remove('hidden-menu'), mobileMenu.classList.add('visible-menu'), body.classList.add('menu-open'));
+            const isActive = mobileMenu.classList.contains('visible-menu');
+            if (isActive) {
+                mobileMenu.classList.remove('visible-menu');
+                mobileMenu.classList.add('hidden-menu');
+                body.classList.remove('menu-open');
+            } else {
+                mobileMenu.classList.remove('hidden-menu');
+                mobileMenu.classList.add('visible-menu');
+                body.classList.add('menu-open');
+            }
         }
-        mobileMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
-        mobileMenu.addEventListener('click', (e) => { if (e.target === mobileMenu || e.target.classList.contains('min-h-full')) toggleMenu(); });
-        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
 
+        mobileMenuBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+        
+        // 点击背景关闭菜单
+        mobileMenu.addEventListener('click', (e) => {
+             if (e.target === mobileMenu || e.target.classList.contains('min-h-full')) toggleMenu(); 
+        });
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        // 初始化
         renderChallenges();
+
     </script>
 </body>
 </html>

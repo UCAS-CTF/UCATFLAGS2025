@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writeup Viewer | UCATFLAGS</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyan: { 400: '#22d3ee', 500: '#06b6d4', 600: '#0891b2', 900: '#164e63' }
+                    },
+                    fontFamily: {
+                        'mono': ['"JetBrains Mono"', 'monospace'],
+                        'sans': ['"Space Grotesk"', 'sans-serif'],
+                        'serif': ['"Playfair Display"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension/lib/index.umd.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; font-family: 'Space Grotesk', sans-serif; }
+        
+        /* 赛博朋克背景纹理 */
+        .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.03; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+        
+        /* 自定义 Markdown 渲染样式 (适配暗黑风) */
+        #markdown-content { color: #d1d5db; font-size: 1rem; line-height: 1.75; }
+        #markdown-content h1 { font-size: 2.25rem; font-weight: bold; margin-bottom: 1.5rem; color: #06b6d4; font-family: 'Playfair Display', serif; border-bottom: 1px solid #262626; padding-bottom: 0.5rem; }
+        #markdown-content h2 { font-size: 1.75rem; font-weight: bold; margin-top: 2.5rem; margin-bottom: 1.25rem; color: #f3f4f6; font-family: 'Playfair Display', serif; }
+        #markdown-content h3 { font-size: 1.25rem; font-weight: bold; margin-top: 2rem; margin-bottom: 1rem; color: #e5e7eb; }
+        #markdown-content p { margin-bottom: 1.25rem; }
+        #markdown-content a { color: #22d3ee; text-decoration: none; border-bottom: 1px border-transparent; transition: all 0.2s; }
+        #markdown-content a:hover { border-bottom-color: #22d3ee; }
+        #markdown-content ul { list-style-type: square; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #9ca3af; }
+        #markdown-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; color: #9ca3af; }
+        #markdown-content li { margin-bottom: 0.5rem; }
+        #markdown-content blockquote { border-left: 4px solid #06b6d4; padding-left: 1.25rem; color: #9ca3af; font-style: italic; background: rgba(6, 182, 212, 0.05); padding-top: 0.5rem; padding-bottom: 0.5rem; margin-bottom: 1.5rem; border-radius: 0 0.25rem 0.25rem 0; }
+        
+        /* 代码块样式 */
+        #markdown-content pre { background: #000000 !important; border: 1px solid #262626; border-radius: 0.375rem; padding: 1.25rem; overflow-x: auto; margin-bottom: 1.5rem; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        #markdown-content pre code { font-family: 'JetBrains Mono', monospace; font-size: 0.875em; background: transparent; padding: 0; border: none; }
+        #markdown-content p > code, #markdown-content li > code, #markdown-content table code { background: rgba(6, 182, 212, 0.1); color: #22d3ee; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.875em; border: 1px solid rgba(6, 182, 212, 0.2); }
+        
+        /* 表格样式 (常用于寄存器状态、参数说明等) */
+        #markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.875rem; }
+        #markdown-content th { background-color: #111; color: #06b6d4; font-weight: bold; text-align: left; padding: 0.75rem 1rem; border: 1px solid #333; }
+        #markdown-content td { padding: 0.75rem 1rem; border: 1px solid #333; color: #d1d5db; }
+        #markdown-content tr:nth-child(even) { background-color: #0a0a0a; }
+        
+        /* 媒体样式 */
+        #markdown-content img { max-width: 100%; height: auto; border-radius: 0.375rem; border: 1px solid #262626; margin: 1.5rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        #markdown-content hr { border: 0; border-top: 1px dashed #333; margin: 2rem 0; }
+        
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020202; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
+    </style>
+</head>
+<body class="bg-white dark:bg-[#020202] text-black dark:text-gray-300 min-h-screen flex flex-col">
+    <div class="noise-overlay"></div>
+
+    <nav class="fixed top-0 left-0 w-full z-50 px-6 py-4 backdrop-blur-md border-b transition-colors duration-500 dark:bg-black/80 dark:border-cyan-500/20 bg-white/90 border-black">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <a href="warmup.html" class="text-lg font-bold tracking-tighter cursor-pointer hover:text-cyan-600 dark:hover:text-cyan-500 transition-colors dark:text-cyan-500 text-black flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> BACK
+            </a>
+            <div class="flex items-center gap-4">
+                <span id="file-name" class="font-mono text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-900 px-3 py-1 rounded border border-gray-200 dark:border-gray-800">
+                    <i class="fa-solid fa-file-code mr-1"></i> Loading...
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow pt-28 pb-20 px-4 md:px-8 max-w-4xl mx-auto w-full relative z-10">
+        
+        <div id="loading" class="text-center font-mono text-cyan-600 dark:text-cyan-500 py-32 animate-pulse flex flex-col items-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-6"></i>
+            <p class="tracking-widest">// DECRYPTING_WRITEUP_DATA...</p>
+        </div>
+        
+        <div id="error-msg" class="hidden text-center font-mono text-red-600 dark:text-red-500 py-20 border border-red-500/30 bg-red-50 dark:bg-red-500/5 rounded p-8 mt-10">
+            <i class="fa-solid fa-triangle-exclamation text-5xl mb-6"></i>
+            <h2 class="text-xl font-bold mb-2">ACCESS DENIED / 404 NOT FOUND</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">The requested writeup file could not be located on the server.</p>
+            <p class="text-xs mt-2 text-gray-500 bg-gray-100 dark:bg-black p-2 rounded inline-block" id="error-details"></p>
+        </div>
+
+        <div id="markdown-content" class="hidden bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-gray-800 p-6 md:p-10 rounded shadow-sm dark:shadow-glow transition-all duration-500 opacity-0 transform translate-y-4"></div>
+    </main>
+
+    <footer class="border-t py-6 text-center font-mono text-xs dark:border-gray-900 dark:bg-[#020202] dark:text-gray-600 border-black bg-white text-gray-500 mt-auto relative z-10">
+        <p>UCATFLAGS 2025+ // WRITEUP VIEWER</p>
+    </footer>
+
+    <script>
+        // 配置 Marked.js，集成 Highlight.js
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (__) {}
+                }
+                return code; // 降级处理
+            },
+            breaks: true, // 允许回车换行
+            gfm: true     // 开启 GitHub 风格 Markdown (支持表格、删除线等)
+        });
+
+        // 挂载 KaTeX 插件，支持渲染 $ inline $ 和 $$ block $$ 公式
+        marked.use(markedKatex({ throwOnError: false }));
+
+        async function loadWriteup() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileUrl = urlParams.get('file');
+            const fileNameEl = document.getElementById('file-name');
+            const mdContainer = document.getElementById('markdown-content');
+            
+            if (!fileUrl) {
+                fileNameEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-red-500 mr-1"></i> NULL_PARAMETER`;
+                showError("No 'file' parameter provided in URL.");
+                return;
+            }
+
+            // 显示去除路径的文件名
+            const cleanName = fileUrl.split('/').pop();
+            fileNameEl.innerHTML = `<i class="fa-solid fa-file-lines mr-1 text-cyan-500"></i> ${cleanName}`;
+
+            try {
+                // Fetch 获取原始 Markdown 数据
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+                
+                const markdownText = await response.text();
+                
+                // 解析并注入 HTML
+                mdContainer.innerHTML = marked.parse(markdownText);
+                
+                // 切换 UI 状态并执行动画
+                document.getElementById('loading').classList.add('hidden');
+                mdContainer.classList.remove('hidden');
+                
+                // 触发进入动画
+                setTimeout(() => {
+                    mdContainer.classList.remove('opacity-0', 'translate-y-4');
+                    mdContainer.classList.add('opacity-100', 'translate-y-0');
+                }, 50);
+                
+            } catch (error) {
+                console.error("Failed to fetch markdown:", error);
+                fileNameEl.innerHTML = `<i class="fa-solid fa-link-slash text-red-500 mr-1"></i> CONNECTION_LOST`;
+                showError(error.message);
+            }
+        }
+
+        function showError(detail) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-msg').classList.remove('hidden');
+            document.getElementById('error-details').innerText = detail;
+        }
+
+        // 初始化加载
+        loadWriteup();
+    </script>
+</body>
+</html>
